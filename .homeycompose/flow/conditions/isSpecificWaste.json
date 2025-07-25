@@ -21,6 +21,10 @@
     {
       "type": "dropdown",
       "name": "wasteType",
+      "title": {
+        "no": "Søppeltype",
+        "en": "Waste type"
+      },
       "values": [
         {
           "id": "general",
@@ -90,6 +94,10 @@
     {
       "type": "dropdown",
       "name": "when",
+      "title": {
+        "no": "Når",
+        "en": "When"
+      },
       "values": [
         {
           "id": "today",
