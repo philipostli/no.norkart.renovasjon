@@ -1,0 +1,12 @@
+{
+  "type": "string",
+  "title": {
+    "no": "Glass",
+    "en": "Glass"
+  },
+  "getable": true,
+  "setable": true,
+  "uiComponent": "sensor",
+  "uiQuickAction": false,
+  "icon": "/drivers/renovasjon/assets/glass.svg"
+}

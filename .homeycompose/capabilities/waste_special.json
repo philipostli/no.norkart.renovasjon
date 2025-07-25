@@ -1,0 +1,12 @@
+{
+  "type": "string",
+  "title": {
+    "no": "Spesialavfall",
+    "en": "Special waste"
+  },
+  "getable": true,
+  "setable": true,
+  "uiComponent": "sensor",
+  "uiQuickAction": false,
+  "icon": "/drivers/renovasjon/assets/special.svg"
+}

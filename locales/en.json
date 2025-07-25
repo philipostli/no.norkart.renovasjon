@@ -1,0 +1,34 @@
+{
+  "pair": {
+    "title": "Waste calendar",
+    "desc": "Fill your address below to see if your municipality uses MinRenovasjon to show waste collection calendar.",
+    "info": {
+        "autoAddress": "Find your address here",
+        "address": "Address",
+        "housenumber": "House number",
+        "postcode": "Postal code",
+        "county_id": "County ID",
+        "address_code": "Address code"
+    },
+    "button": {
+      "next": "Next"
+    },
+    "status": {
+      "calendar_found": "Waste calendar found!",
+      "calendar_found_desc": "We found a waste calendar for your address! Please check that it matches your provider's waste calendar.",
+      "no_calendar": "No waste calendar found!",
+      "no_calendar_desc": "We found no waste calendar for your address. Please check that you have entered the correct address, and that your municipality uses MinRenovasjon.",
+      "address_error": "Address error!",
+      "address_error_desc": "Sorry, we could not find information about your address. You may have entered it incorrectly, or your address is not registered in the map."
+    }
+  },
+  "device": {
+    "error": {
+      "no_calendar": "Found no waste calendar for this address",
+      "general": "Another error occurred:"
+    },
+    "pickup": {
+      "days_to": "days until"
+    }
+  }
+}

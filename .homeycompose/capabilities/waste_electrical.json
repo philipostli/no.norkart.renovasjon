@@ -1,0 +1,12 @@
+{
+  "type": "string",
+  "title": {
+    "no": "Elektrisitet",
+    "en": "Electrical"
+  },
+  "getable": true,
+  "setable": true,
+  "uiComponent": "sensor",
+  "uiQuickAction": false,
+  "icon": "/drivers/renovasjon/assets/electrical.svg"
+}

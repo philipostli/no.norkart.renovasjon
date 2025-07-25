@@ -1,0 +1,156 @@
+.geoapify-autocomplete-input {
+    padding: 0 31px 0 7px;
+    width: calc(100% - 40px);
+
+    outline: none;
+
+    line-height: 36px;
+    height: 36px;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+
+    font-size: 14px;
+}
+
+.geoapify-autocomplete-items {
+    position: absolute;
+    border: 1px solid rgba(0, 0, 0, 0.3);
+    border-top: none;
+    background-color: #fff;
+    
+    z-index: 99;
+    top: 100%;
+    left: 0;
+    right: 0;
+}
+
+.geoapify-autocomplete-items div {
+    padding: 10px;
+    cursor: pointer;
+}
+
+.geoapify-autocomplete-items div:hover {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.geoapify-autocomplete-items .active {
+    background-color: rgba(0, 0, 0, 0.1);
+}
+
+.geoapify-autocomplete-item {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+}
+
+.geoapify-autocomplete-item .icon {
+    display: inline-block;
+    width: 40px;
+    height: 24px;
+    color: #aaa;
+}
+
+.geoapify-autocomplete-item .icon.emoji {
+    color: unset;
+    font-size: 20px;
+    opacity: 0.9;
+}
+
+.geoapify-close-button {
+    position: absolute;
+    right: 5px;
+    top: 0;
+
+    height: 100%;
+    display: none;
+    align-items: center;
+}
+
+.geoapify-close-button.visible {
+    display: flex;
+}
+
+.geoapify-close-button {
+    color: rgba(0, 0, 0, 0.4);
+    cursor: pointer;
+}
+
+.geoapify-close-button:hover {
+    color: rgba(0, 0, 0, 0.6);
+}
+
+.geoapify-autocomplete-items .main-part .non-verified {
+    color:  #ff4848;
+}
+
+.geoapify-autocomplete-items .secondary-part {
+    margin-left: 10px;
+    font-size: small;
+    color: rgba(0, 0, 0, 0.6);
+}
+
+/* Fix typeahead.js width issues */
+.twitter-typeahead {
+    width: 100% !important;
+}
+
+.twitter-typeahead .tt-input {
+    width: calc(100% - 2px) !important;
+}
+
+.twitter-typeahead .tt-hint {
+    width: calc(100% - 2px) !important;
+}
+
+.tt-menu {
+    width: 100% !important;
+}
+
+#bottomButton {
+    width: 100%;
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    display: flex;
+    justify-content: center;
+  }
+
+  #next {
+    padding: 16px;
+    max-width: 388px;
+    max-height: 48px;
+    box-sizing: border-box;
+    margin: 20px 0;
+  }
+
+  .twitter-typeahead,
+  .tt-hint,
+  .tt-input,
+  .tt-menu {
+    width: 100%;
+  }
+
+  .tt-menu {
+    width: 300px;
+  }
+
+  .tt-suggestion {
+    padding: 10px 20px;
+    border-bottom: 1px solid #ccc;
+    cursor: pointer;
+  }
+
+  .tt-suggestion:hover {
+    color: white;
+    background-color: #0097cf;
+  }
+
+  .tt-suggestion:last-child {
+    border-bottom: none;
+  }
+
+  .tt-dataset {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    background-color: white;
+  }

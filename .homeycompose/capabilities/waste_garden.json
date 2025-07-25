@@ -1,0 +1,12 @@
+{
+  "type": "string",
+  "title": {
+    "no": "Hageavfall",
+    "en": "Garden waste"
+  },
+  "getable": true,
+  "setable": true,
+  "uiComponent": "sensor",
+  "uiQuickAction": false,
+  "icon": "/drivers/renovasjon/assets/garden.svg"
+}

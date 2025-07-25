@@ -1,0 +1,18 @@
+{
+  "name": "no.norkart.renovasjon",
+  "version": "1.0.0",
+  "main": "app.js",
+  "scripts": {
+    "validate": "homey app validate --level verified",
+    "build": "homey app build",
+    "start": "homey app run",
+    "publish": "homey app publish",
+    "test": "node test/test-capability-mapping.js"
+  },
+  "dependencies": {
+    "node-cron": "^3.0.3"
+  },
+  "devDependencies": {
+    "@types/homey": "npm:homey-apps-sdk-v3-types@^0.3.12"
+  }
+}

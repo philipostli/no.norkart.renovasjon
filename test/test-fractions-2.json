@@ -1,0 +1,138 @@
+[
+    {
+        "Id": 1,
+        "Navn": "Restavfall",
+        "Ikon": "http://komteksky.norkart.no/MinRenovasjon.Api/Ikoner/restavfall.png",
+        "NorkartStandardFraksjonId": 1,
+        "NorkartStandardFraksjonIkon": "https://kttjeneste.norkart.no/Avfallssymboler/1.png",
+        "expectedCapability": "waste_general"
+    },
+    {
+        "Id": 2,
+        "Navn": "Papp, papir, kartong",
+        "Ikon": "http://komteksky.norkart.no/MinRenovasjon.Api/Ikoner/papppapirdrikkekartong.png",
+        "NorkartStandardFraksjonId": 6,
+        "NorkartStandardFraksjonIkon": "https://kttjeneste.norkart.no/Avfallssymboler/6.png",
+        "expectedCapability": "waste_paper"
+    },
+    {
+        "Id": 3,
+        "Navn": "Startsett kildesortering",
+        "Ikon": "http://komteksky.norkart.no/MinRenovasjon.Api/Ikoner/matavfall.png",
+        "NorkartStandardFraksjonId": null,
+        "NorkartStandardFraksjonIkon": null,
+        "expectedCapability": null
+    },
+    {
+        "Id": 4,
+        "Navn": "Glass- og metallemballasje",
+        "Ikon": "http://komteksky.norkart.no/MinRenovasjon.Api/Ikoner/glassogmetallemballasje.png",
+        "NorkartStandardFraksjonId": 5,
+        "NorkartStandardFraksjonIkon": "https://kttjeneste.norkart.no/Avfallssymboler/5.png",
+        "expectedCapability": "waste_glass"
+    },
+    {
+        "Id": 5,
+        "Navn": "Drikkekartonger",
+        "Ikon": "http://komteksky.norkart.no/MinRenovasjon.Api/Ikoner/drikkekartong.png",
+        "NorkartStandardFraksjonId": null,
+        "NorkartStandardFraksjonIkon": null,
+        "expectedCapability": null
+    },
+    {
+        "Id": 6,
+        "Navn": "Spesialavfall",
+        "Ikon": "http://komteksky.norkart.no/MinRenovasjon.Api/Ikoner/farligavfall.png",
+        "NorkartStandardFraksjonId": null,
+        "NorkartStandardFraksjonIkon": null,
+        "expectedCapability": "waste_special"
+    },
+    {
+        "Id": 7,
+        "Navn": "Plast",
+        "Ikon": "http://komteksky.norkart.no/MinRenovasjon.Api/Ikoner/plastemballasje.png",
+        "NorkartStandardFraksjonId": null,
+        "NorkartStandardFraksjonIkon": null,
+        "expectedCapability": "waste_plastic"
+    },
+    {
+        "Id": 8,
+        "Navn": "Trevirke",
+        "Ikon": "http://komteksky.norkart.no/MinRenovasjon.Api/Ikoner/trevirke.png",
+        "NorkartStandardFraksjonId": null,
+        "NorkartStandardFraksjonIkon": null,
+        "expectedCapability": null
+    },
+    {
+        "Id": 9,
+        "Navn": "Tekstiler, klær og sko",
+        "Ikon": "http://komteksky.norkart.no/MinRenovasjon.Api/Ikoner/klaerogsko.png",
+        "NorkartStandardFraksjonId": 14,
+        "NorkartStandardFraksjonIkon": "https://kttjeneste.norkart.no/Avfallssymboler/14.png",
+        "expectedCapability": "waste_clothes"
+    },
+    {
+        "Id": 10,
+        "Navn": "Hageavfall",
+        "Ikon": "http://komteksky.norkart.no/MinRenovasjon.Api/Ikoner/hageavfall.png",
+        "NorkartStandardFraksjonId": null,
+        "NorkartStandardFraksjonIkon": null,
+        "expectedCapability": "waste_garden"
+    },
+    {
+        "Id": 11,
+        "Navn": "Metaller",
+        "Ikon": "http://komteksky.norkart.no/MinRenovasjon.Api/Ikoner/metall.png",
+        "NorkartStandardFraksjonId": null,
+        "NorkartStandardFraksjonIkon": null,
+        "expectedCapability": null
+    },
+    {
+        "Id": 12,
+        "Navn": "Hvitevarer/EE-avfall",
+        "Ikon": "http://komteksky.norkart.no/MinRenovasjon.Api/Ikoner/elektriskogelektronisk.png",
+        "NorkartStandardFraksjonId": null,
+        "NorkartStandardFraksjonIkon": null,
+        "expectedCapability": "waste_electrical"
+    },
+    {
+        "Id": 13,
+        "Navn": "Papp",
+        "Ikon": "http://komteksky.norkart.no/MinRenovasjon.Api/Ikoner/pappogkartong.png",
+        "NorkartStandardFraksjonId": null,
+        "NorkartStandardFraksjonIkon": null,
+        "expectedCapability": "waste_paper"
+    },
+    {
+        "Id": 14,
+        "Navn": "Møbler",
+        "Ikon": "http://komteksky.norkart.no/MinRenovasjon.Api/Ikoner/brush.png",
+        "NorkartStandardFraksjonId": null,
+        "NorkartStandardFraksjonIkon": null,
+        "expectedCapability": null
+    },
+    {
+        "Id": 15,
+        "Navn": "Kun for bæreposer",
+        "Ikon": "http://komteksky.norkart.no/MinRenovasjon.Api/Ikoner/plastemballasje.png",
+        "NorkartStandardFraksjonId": 1,
+        "NorkartStandardFraksjonIkon": "https://kttjeneste.norkart.no/Avfallssymboler/1.png",
+        "expectedCapability": null
+    },
+    {
+        "Id": 16,
+        "Navn": "Skap for grønne poser",
+        "Ikon": "http://komteksky.norkart.no/MinRenovasjon.Api/Ikoner/brush.png",
+        "NorkartStandardFraksjonId": null,
+        "NorkartStandardFraksjonIkon": null,
+        "expectedCapability": null
+    },
+    {
+        "Id": 17,
+        "Navn": "Matavfall",
+        "Ikon": "http://komteksky.norkart.no/MinRenovasjon.Api/Ikoner/matavfall.png",
+        "NorkartStandardFraksjonId": 2,
+        "NorkartStandardFraksjonIkon": "https://kttjeneste.norkart.no/Avfallssymboler/2.png",
+        "expectedCapability": "waste_bio"
+    }
+] 

@@ -1,0 +1,84 @@
+{
+  "name": {
+    "en": "Waste calendar",
+    "no": "Tømmekalender"
+  },
+  "class": "other",
+  "capabilities": [],
+  "platforms": [
+    "local"
+  ],
+  "connectivity": [],
+  "images": {
+    "small": "{{driverAssetsPath}}/images/small.png",
+    "large": "{{driverAssetsPath}}/images/large.png",
+    "xlarge": "{{driverAssetsPath}}/images/xlarge.png"
+  },
+  "settings": [
+    {
+      "type": "group",
+      "label": {
+        "no": "Adresse innstillinger",
+        "en": "Address settings"
+      },
+      "children": [
+        {
+          "id": "streetName",
+          "type": "label",
+          "value": "-",
+          "label": {
+            "no": "Gatenavn",
+            "en": "Street name"
+          }
+        },
+        {
+          "id": "houseNumber",
+          "type": "label",
+          "value": "-",
+          "label": {
+            "no": "Husnummer",
+            "en": "House number"
+          }
+        },
+        {
+          "id": "countyId",
+          "type": "label",
+          "value": "-",
+          "label": {
+            "no": "Kommunenr",
+            "en": "County ID"
+          }
+        },
+        {
+          "id": "addressCode",
+          "type": "label",
+          "value": "-",
+          "label": {
+            "no": "Adressekode",
+            "en": "Address code"
+          }
+        }
+      ]
+    }
+  ],
+  "pair": [
+    {
+      "id": "search_address"
+    },
+    {
+      "id": "list_devices",
+      "template": "list_devices",
+      "navigation": {
+        "next": "add_devices",
+        "prev": "search_address"
+      },
+      "options": {
+        "singular": true
+      }
+    },
+    {
+      "id": "add_devices",
+      "template": "add_devices"
+    }
+  ]
+}

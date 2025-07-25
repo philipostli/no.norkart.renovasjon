@@ -1,0 +1,190 @@
+<link rel="stylesheet" type="text/css" href="../../../assets/css/minimal.css">
+<style type="text/css">
+  .autocomplete-container {
+    position: relative;
+  }
+</style>
+<!-- <header class="homey-header">
+  <h1 class="homey-title" data-i18n="pair.title"></h1>
+  <p class="homey-subtitle" data-i18n="pair.desc"></p>
+</header> -->
+<fieldset class="homey-form-fieldset">
+  <div>
+    <label for="autocomplete" class="homey-form-label"><span data-i18n="pair.info.autoAddress"></span></label>
+    <input class="homey-form-input" id="kartverketAutocomplete" type="text"
+      placeholder="Søk etter adresse...">
+    <hr>
+  </div>
+  <form>
+    <input type="hidden" id="streetName" />
+    <input type="hidden" id="houseNumber" />
+    <input type="hidden" id="postCode" />
+    <input type="hidden" id="countyID" />
+    <input type="hidden" id="addressID" />
+    <input type="hidden" id="addressCode" />
+  </form>
+</fieldset>
+<div id="bottomButton">
+  <button id="next" class="homey-button-primary-full" data-i18n="pair.button.next"></button>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/typeahead.js/0.11.1/typeahead.bundle.min.js"></script>
+<script type="text/javascript">
+  $(document).ready(function () {
+    var timeoutId;
+
+    Homey.setTitle(Homey.__(`pair.title`));
+    Homey.setSubtitle(Homey.__(`pair.desc`));
+
+    setTimeout(function () {
+      $('#kartverketAutocomplete').typeahead({
+        highlight: true,
+      },
+        {
+          name: 'adresser',
+          display: 'value',
+          source: function (query, syncResults, asyncResults) {
+            // Clear old timeout if it exists
+            if (timeoutId) {
+              clearTimeout(timeoutId);
+            }
+
+            // Set a new timeout
+            timeoutId = setTimeout(function () {
+              $.get(`https://ws.geonorge.no/adresser/v1/sok?sok=${query}&fuzzy=false&utkoordsys=4258&treffPerSide=10&side=0&asciiKompatibel=true`, function (data) {
+                // Transform data here before passing to asyncResults
+                let transformedData = data.adresser.map(function (address) {
+                  return {
+                    value: `${address.adressetekst}, ${address.postnummer} ${address.poststed}`,
+                    adresseNavn: address.adressenavn,
+                    adresseTekst: address.adressetekst,
+                    adresseNummer: address.nummer,
+                    adresseBokstav: address.bokstav,
+                    adresseKode: address.adressekode,
+                    kommuneNummer: address.kommunenummer,
+                    kommuneNavn: address.kommunenavn,
+                    postNummer: address.postnummer,
+                    postSted: address.poststed,
+                  };
+                });
+                asyncResults(transformedData);
+              });
+            }, 200);
+          }
+        });
+
+      $('#kartverketAutocomplete').bind('typeahead:selected', function (obj, datum, name) {
+        document.getElementById('streetName').value = datum.adresseNavn;
+        document.getElementById('houseNumber').value = `${datum.adresseNummer}${datum.adresseBokstav ? datum.adresseBokstav : ''}`;
+        document.getElementById('postCode').value = datum.postNummer;
+        document.getElementById('countyID').value = datum.postSted;
+        this.address = {
+          "streetName": document.getElementById('streetName').value,
+          "houseNumber": document.getElementById('houseNumber').value,
+          "postCode": document.getElementById('postCode').value,
+          "postCity": document.getElementById('countyID').value,
+        }
+
+        const update = settingsChanged(this.address);
+        if (update == true) {
+          // console.log('Settings updated!');
+          $('#next').show();
+        }
+      });
+    }, 1000);
+  });
+</script>
+
+
+<script type="text/javascript">
+  $(document).ready(function () {
+    Homey.emit('getProviders').then(function (result) {
+      for (let i = 0; i < result.length; i++) {
+        $('#provider-select').append(`<option value="${result[i].provider}">${result[i].provider}</option>`);
+      }
+      return true;
+    });
+  });
+
+  function settingsChanged(value) {
+    Homey.emit("settingsChanged", value).then(function (result) {
+      // console.log(result);
+      return true;
+    });
+    return true;
+  }
+
+  function changeTitle(title, subtitle) {
+    Homey.setTitle(title);
+    Homey.setSubtitle(subtitle);
+    return true;
+  }
+
+  async function checkAddress(address) {
+    // console.log(`Checking address: ${JSON.stringify(address)}`);
+    return await Homey.emit('checkAddress', address);
+  }
+
+  async function getCalendar(address) {
+    // console.log(`Getting calendar for address: ${JSON.stringify(address)}`);
+    return await Homey.emit('getCalendar', address);
+  }
+
+  $('#next').click(async function () {
+    // changeTitle('Søker etter din adresse i kartet...', 'Dette kan ta noen sekunder...');
+
+    Homey.showLoadingOverlay();
+
+    const address = {
+      "streetName": $('#streetName').val(),
+      "houseNumber": $('#houseNumber').val(),
+      "postCode": $('#postCode').val(),
+      "postCity": $('#countyID').val(),
+    };
+
+    try {
+      const data = await Homey.emit('checkAddress', address);
+
+      // changeTitle('Fant din adresse!', `Vi fant din adresse. Sjekker om du har en avfallskalender for denne adressen...`);
+
+      $('#showAddressID').val(data.addressID);
+      $('#countyID').val(data.countyId);
+      $('#addressCode').val(data.addressCode);
+      $('#addressID').val(data.addressID);
+
+      const calendarData = await Homey.emit('getCalendar', data);
+
+      
+      Homey.hideLoadingOverlay();
+
+      if (calendarData && calendarData.length > 0) {
+        changeTitle(Homey.__('pair.status.calendar_found'), Homey.__('pair.status.calendar_found_desc'));
+        const settingsChanged = await Homey.emit("settingsChanged", data);
+        Homey.nextView();
+        return;
+      } else {
+        changeTitle(Homey.__('pair.status.no_calendar'), Homey.__('pair.status.no_calendar_desc'));
+      }
+      
+      
+    } catch (error) {
+
+      // Address not found. Show error.
+      Homey.setTitle(Homey.__('pair.status.address_error'));
+      Homey.setSubtitle(Homey.__('pair.status.address_error_desc'));
+      Homey.hideLoadingOverlay();
+      Homey.setNavigationClose();
+
+      $('#streetName').val('');
+      $('#houseNumber').val('');
+      $('#postCode').val('');
+      $('#addressID').val('');
+      $('#provider').val('');
+      $('#countyID').val('');
+      $('#addressCode').val('');
+
+    }
+  });
+
+
+
+</script>

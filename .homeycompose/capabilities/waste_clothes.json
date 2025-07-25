@@ -1,0 +1,12 @@
+{
+  "type": "string",
+  "title": {
+    "no": "Klær",
+    "en": "Clothes"
+  },
+  "getable": true,
+  "setable": true,
+  "uiComponent": "sensor",
+  "uiQuickAction": false,
+  "icon": "/drivers/renovasjon/assets/clothes.svg"
+}

@@ -1,0 +1,12 @@
+{
+  "type": "string",
+  "title": {
+    "no": "Plast",
+    "en": "Plastic"
+  },
+  "getable": true,
+  "setable": true,
+  "uiComponent": "sensor",
+  "uiQuickAction": false,
+  "icon": "/drivers/renovasjon/assets/plastic.svg"
+}

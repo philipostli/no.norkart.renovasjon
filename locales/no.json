@@ -1,0 +1,34 @@
+{
+  "pair": {
+			"title": "Tømmekalender",
+			"desc": "Fyll inn din adresse under for å se om din kommune bruker MinRenovasjon for å vise tømmekalender.",
+			"info": {
+				"autoAddress": "Finn adressen din her",
+				"address": "Adresse",
+				"housenumber": "Husnummer",
+				"postcode": "Postnummer",
+				"county_id": "Kommunenr",
+				"address_code": "Adressekode"
+			},
+      "button": {
+        "next": "Neste"
+      },
+      "status": {
+        "calendar_found": "Tømmekalender funnet!",
+        "calendar_found_desc": "Vi fant en tømmekalender for din adresse! Vennligst sjekk at den stemmer overens med din leverandørs tømmekalender.",
+        "no_calendar": "Ingen tømmekalender funnet",
+        "no_calendar_desc": "Vi fant ingen tømmekalender for din adresse. Vennligst sjekk at du har skrevet inn riktig adresse, og om din kommune bruker MinRenovasjon.",
+        "address_error": "Feil i adresse!",
+        "address_error_desc": "Beklager, vi fant ikke informasjon om din adresse. Det kan være at du har skrevet feil, eller at din adresse ikke er registrert i kartet."
+      }
+	},
+  "device": {
+    "error": {
+      "no_calendar": "Fant ingen tømmekalender for denne adressen",
+      "general": "En annen feil har oppstått:"
+    },
+    "pickup": {
+      "days_to": "dager til"
+    }
+  }
+}

@@ -1,0 +1,111 @@
+{
+  "id": "isSpecificWaste",
+  "title": {
+    "no": "Søppeltype hentes !{{|ikke}} når",
+    "en": "Waste type is !{{|not}} picked up when"
+  },
+  "titleFormatted": {
+    "no": "[[wasteType]] hentes !{{|ikke}} [[when]]",
+    "en": "[[wasteType]] is !{{|not}} picked up [[when]]"
+  },
+  "hint": {
+    "no": "Dette kortet trigges dersom søppeltypen hentes enten i dag eller i morgen.",
+    "en": "This card is triggered when the waste type is picked up either today or tomorrow."
+  },
+  "args": [
+    {
+      "type": "device",
+      "name": "device",
+      "filter": "driver_id=renovasjon"
+    },
+    {
+      "type": "dropdown",
+      "name": "wasteType",
+      "values": [
+        {
+          "id": "general",
+          "label": {
+            "no": "Restavfall",
+            "en": "General waste"
+          }
+        },
+        {
+          "id": "paper",
+          "label": {
+            "no": "Papiravfall",
+            "en": "Paper waste"
+          }
+        },
+        {
+          "id": "plastic",
+          "label": {
+            "no": "Plastavfall",
+            "en": "Plastic waste"
+          }
+        },
+        {
+          "id": "bio",
+          "label": {
+            "no": "Matavfall",
+            "en": "Food waste"
+          }
+        },
+        {
+          "id": "glass",
+          "label": {
+            "no": "Glass- og metallemballasje",
+            "en": "Glass and metal packaging"
+          }
+        },
+        {
+          "id": "garden",
+          "label": {
+            "no": "Hageavfall",
+            "en": "Garden waste"
+          }
+        },
+        {
+          "id": "special",
+          "label": {
+            "no": "Spesialavfall",
+            "en": "Special waste"
+          }
+        },
+        {
+          "id": "electrical",
+          "label": {
+            "no": "Elektrisitet",
+            "en": "Electrical"
+          }
+        },
+        {
+          "id": "clothes",
+          "label": {
+            "no": "Klær",
+            "en": "Clothes"
+          }
+        }
+      ]
+    },
+    {
+      "type": "dropdown",
+      "name": "when",
+      "values": [
+        {
+          "id": "today",
+          "label": {
+            "no": "i dag",
+            "en": "today"
+          }
+        },
+        {
+          "id": "tomorrow",
+          "label": {
+            "no": "i morgen",
+            "en": "tomorrow"
+          }
+        }
+      ]
+    }
+  ]
+}
