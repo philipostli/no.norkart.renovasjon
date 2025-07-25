@@ -36,7 +36,59 @@ module.exports = class MyDevice extends Homey.Device {
    * @returns {Promise<string|void>} return a custom message that will be displayed
    */
   async onSettings({ oldSettings, newSettings, changedKeys }) {
-    this.log('MinRenovasjon settings where changed');
+    // this.log('MinRenovasjon settings were changed');
+    // this.log('Changed keys:', changedKeys);
+    
+    // Check if any waste display settings were changed
+    const wasteSettingsChanged = changedKeys.some(key => key.startsWith('waste_'));
+    
+    if (wasteSettingsChanged) {
+      // this.log('Waste display settings changed - updating capabilities and next_pickup_days');
+      
+      // Handle capability changes based on settings
+      for (const key of changedKeys) {
+        if (key.startsWith('waste_')) {
+          if (newSettings[key] === false) {
+            // Remove capability if disabled
+            if (this.hasCapability(key)) {
+              await this.removeCapability(key);
+              // this.log(`Removed capability: ${key}`);
+            }
+          } else if (newSettings[key] === true) {
+            // Add capability back if enabled and we have data for it
+            if (this.wasteData && this.fractions) {
+              // Find if we have data for this capability
+              const fraction = this.fractions.find(f => {
+                const capabilityName = this.getCapabilityNameForFraction(f.Navn);
+                return capabilityName === key;
+              });
+              
+              if (fraction && this.wasteData[fraction.Id]) {
+                if (!this.hasCapability(key)) {
+                  await this.addCapability(key);
+                  // this.log(`Added capability: ${key}`);
+                }
+                
+                // Set the capability value
+                const date = this.wasteData[fraction.Id];
+                const dateString = date.toLocaleDateString('no-NO', { 
+                  weekday: 'short', 
+                  day: 'numeric', 
+                  month: 'short' 
+                });
+                await this.setCapabilityValue(key, dateString);
+                // this.log(`Set ${key} to: ${dateString}`);
+              }
+            }
+          }
+        }
+      }
+      
+      // Recalculate next_pickup_days based on enabled waste types
+      if (this.wasteData && this.fractions) {
+        await this.updateNextPickupDays(newSettings);
+      }
+    }
   }
 
   /**
@@ -124,13 +176,16 @@ module.exports = class MyDevice extends Homey.Device {
       this.wasteData = wasteData;
 
       // this.log(wasteData);
+      
+      const settings = await this.getSettings();
+      // this.log(settings);
 
       // Iterate over the wasteData object keys (fraction IDs)
       for (const fractionId of Object.keys(wasteData)) {
         const nextDate = wasteData[fractionId];
         const norwegianDate = nextDate.toLocaleDateString('no-NO', {
-          weekday: 'long',
-          month: 'long',
+          weekday: 'short',
+          month: 'short',
           day: 'numeric'
         });
         
@@ -146,6 +201,11 @@ module.exports = class MyDevice extends Homey.Device {
           continue; // Skip if no matching capability
         }
         
+        // Check if user wants to show this capability
+        if (settings[capabilityName] === false) {
+          continue; // Skip adding/updating this capability if user has disabled it
+        }
+        
         // Add capability if it doesn't exist and set value
         if (!this.hasCapability(capabilityName)) {
           await this.addCapability(capabilityName);
@@ -153,38 +213,29 @@ module.exports = class MyDevice extends Homey.Device {
         await this.setCapabilityValue(capabilityName, norwegianDate);
       }
         
-        // Find the earliest date and its fraction ID
+        // Find the earliest date and its fraction ID (only for enabled capabilities)
         let earliestDate = null;
         let earliestFractionId = null;
         
         for (const fractionId of Object.keys(wasteData)) {
           const date = wasteData[fractionId];
+          
+          // Check if this fraction has a corresponding enabled capability
+          const fraction = this.fractions.find(f => f.Id == fractionId);
+          if (fraction) {
+            const capabilityName = this.getCapabilityNameForFraction(fraction.Navn);
+            if (capabilityName && settings[capabilityName] === false) {
+              continue; // Skip this fraction if its capability is disabled
+            }
+          }
+          
           if (!earliestDate || date < earliestDate) {
             earliestDate = date;
             earliestFractionId = fractionId;
           }
         }
         
-        if (earliestDate) {
-          // Calculate days until pickup
-          const today = new Date();
-          today.setHours(0, 0, 0, 0); // Reset time to start of day
-          const timeDiff = earliestDate.getTime() - today.getTime();
-          const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
-          
-          // Find fraction name from this.fractions
-          const fraction = this.fractions.find(f => f.Id == earliestFractionId);
-          const fractionName = fraction ? fraction.Navn : `Fraksjon ${earliestFractionId}`;
-          
-          const nextPickupText = `${daysDiff} ${this.homey.__('device.pickup.days_to')} ${fractionName}`;
-          
-          if (!this.hasCapability('next_pickup_days')) {
-            await this.addCapability('next_pickup_days');
-          }
-          await this.setCapabilityValue('next_pickup_days', nextPickupText);
-          
-          // this.log(`Next pickup: ${nextPickupText}`);
-        }
+        await this.updateNextPickupDays(settings, earliestDate, earliestFractionId);
       
 
       // const groupedWasteInfo = await this.groupSimilarWasteTypes(wasteData);
@@ -286,6 +337,56 @@ module.exports = class MyDevice extends Homey.Device {
 
     // Return the Date object from wasteData
     return this.wasteData[fraction.Id] || null;
+  }
+
+  async updateNextPickupDays(settings, earliestDate = null, earliestFractionId = null) {
+    // If no earliest date provided, calculate it from wasteData
+    if (!earliestDate && this.wasteData && this.fractions) {
+      for (const fractionId of Object.keys(this.wasteData)) {
+        const date = this.wasteData[fractionId];
+        
+        // Check if this fraction has a corresponding enabled capability
+        const fraction = this.fractions.find(f => f.Id == fractionId);
+        if (fraction) {
+          const capabilityName = this.getCapabilityNameForFraction(fraction.Navn);
+          if (capabilityName && settings[capabilityName] === false) {
+            continue; // Skip this fraction if its capability is disabled
+          }
+        }
+        
+        if (!earliestDate || date < earliestDate) {
+          earliestDate = date;
+          earliestFractionId = fractionId;
+        }
+      }
+    }
+
+    if (earliestDate) {
+      // Calculate days until pickup
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Reset time to start of day
+      const timeDiff = earliestDate.getTime() - today.getTime();
+      const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+      
+      // Find fraction name from this.fractions
+      const fraction = this.fractions.find(f => f.Id == earliestFractionId);
+      const fractionName = fraction ? fraction.Navn : `Fraksjon ${earliestFractionId}`;
+      
+      const nextPickupText = `${daysDiff} ${this.homey.__('device.pickup.days_to')} ${fractionName}`;
+      
+      if (!this.hasCapability('next_pickup_days')) {
+        await this.addCapability('next_pickup_days');
+      }
+      await this.setCapabilityValue('next_pickup_days', nextPickupText);
+      
+      // this.log(`Updated next pickup: ${nextPickupText}`);
+    } else {
+      // No enabled waste types have pickup dates, remove the capability
+      if (this.hasCapability('next_pickup_days')) {
+        await this.removeCapability('next_pickup_days');
+        // this.log('Removed next_pickup_days - no enabled waste types');
+      }
+    }
   }
 
 };

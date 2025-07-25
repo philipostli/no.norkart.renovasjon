@@ -216,6 +216,96 @@
               }
             }
           ]
+        },
+        {
+          "type": "group",
+          "label": {
+            "no": "Avfallsinnstillinger",
+            "en": "Waste settings"
+          },
+          "children": [
+            {
+              "id": "waste_general",
+              "type": "checkbox",
+              "value": true,
+              "label": {
+                "no": "Restavfall",
+                "en": "General waste"
+              }
+            },
+            {
+              "id": "waste_paper",
+              "type": "checkbox",
+              "value": true,
+              "label": {
+                "no": "Papp/papiravfall",
+                "en": "Paper waste"
+              }
+            },
+            {
+              "id": "waste_plastic",
+              "type": "checkbox",
+              "value": true,
+              "label": {
+                "no": "Plastavfall",
+                "en": "Plastic waste"
+              }
+            },
+            {
+              "id": "waste_bio",
+              "type": "checkbox",
+              "value": true,
+              "label": {
+                "no": "Matavfall",
+                "en": "Bio waste"
+              }
+            },
+            {
+              "id": "waste_glass",
+              "type": "checkbox",
+              "value": true,
+              "label": {
+                "no": "Glass/metallavfall",
+                "en": "Glass/metal waste"
+              }
+            },
+            {
+              "id": "waste_garden",
+              "type": "checkbox",
+              "value": true,
+              "label": {
+                "no": "Hageavfall",
+                "en": "Garden waste"
+              }
+            },
+            {
+              "id": "waste_special",
+              "type": "checkbox",
+              "value": true,
+              "label": {
+                "no": "Spesialavfall",
+                "en": "Special waste"
+              }
+            },
+            {
+              "id": "waste_electrical",
+              "type": "checkbox",
+              "value": true,
+              "label": {
+                "no": "Elektrisitet",
+                "en": "Electrical"
+              }
+            },
+            {
+              "id": "waste_clothes",
+              "type": "checkbox",
+              "value": true,
+              "label": {
+                "no": "Klær",
+                "en": "Clothes"
+              }
+            }
+          ]
         }
       ],
       "pair": [
