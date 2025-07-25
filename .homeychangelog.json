@@ -1,5 +1,8 @@
 {
   "0.0.2": {
     "en": "Initial test-version"
+  },
+  "0.1.0": {
+    "en": "Added settings for waste types + Fixed address house letters"
   }
 }
