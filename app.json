@@ -28,7 +28,8 @@
   "author": {
     "name": "Philip Østli"
   },
-  "support": "https://community.homey.app/",
+  "support": "https://community.homey.app/t/app-pro-minrenovasjon/140404",
+  "homeyCommunityTopicId": 140404,
   "homepage": "https://www.norkart.no/offentlig/komtek/renovasjon/minrenovasjon",
   "flow": {
     "conditions": [
