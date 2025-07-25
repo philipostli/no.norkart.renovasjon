@@ -46,8 +46,8 @@ module.exports = class RenovationDriver extends Homey.Driver {
   async onPairListDevices(session) {
     let devices = [];
 
-    let deviceName = `Renovasjon ${this.addressData["streetName"]} ${this.addressData["houseNumber"]}`;
-    let deviceId = this.addressData["streetName"] + this.addressData["houseNumber"];
+    let deviceName = `Renovasjon ${this.addressData["streetName"]} ${this.addressData["houseNumber"]}${this.addressData["houseLetter"]}`;
+    let deviceId = this.addressData["streetName"] + this.addressData["houseNumber"] + this.addressData["houseLetter"];
     let device = {
       name: deviceName,
       data: {
@@ -55,9 +55,9 @@ module.exports = class RenovationDriver extends Homey.Driver {
       },
       settings: {
         streetName: this.addressData["streetName"],
-        houseNumber: this.addressData["houseNumber"],
+        houseNumber: this.addressData["houseNumber"].toString() + this.addressData["houseLetter"],
         countyId: this.addressData["countyId"],
-        addressCode: this.addressData["addressCode"],
+        addressCode: this.addressData["addressCode"].toString(),
       }
     };
     devices.push(device);
@@ -81,7 +81,7 @@ module.exports = class RenovationDriver extends Homey.Driver {
         // this.homey.log(responseData);
         // this.homey.log(response.status);
 
-                if (response.status == 200 && responseData.adresser && responseData.adresser.length > 0) {
+        if (response.status == 200 && responseData.adresser && responseData.adresser.length > 0) {
             const address = responseData.adresser[0];
             
             let addressData = {
@@ -92,6 +92,7 @@ module.exports = class RenovationDriver extends Homey.Driver {
                 "addressName": "",
                 "streetName": "",
                 "houseNumber": "",
+                "houseLetter": "",
                 "postCode": ""
             }
 
@@ -102,6 +103,7 @@ module.exports = class RenovationDriver extends Homey.Driver {
             addressData.addressName = address.adressetekst;
             addressData.streetName = address.adressenavn;
             addressData.houseNumber = address.nummer;
+            addressData.houseLetter = address.bokstav;
             addressData.postCode = address.postnummer;
 
             return addressData;

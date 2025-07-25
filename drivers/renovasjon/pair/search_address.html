@@ -18,6 +18,7 @@
   <form>
     <input type="hidden" id="streetName" />
     <input type="hidden" id="houseNumber" />
+    <input type="hidden" id="houseLetter" />
     <input type="hidden" id="postCode" />
     <input type="hidden" id="countyID" />
     <input type="hidden" id="addressID" />
@@ -77,11 +78,13 @@
         document.getElementById('houseNumber').value = `${datum.adresseNummer}${datum.adresseBokstav ? datum.adresseBokstav : ''}`;
         document.getElementById('postCode').value = datum.postNummer;
         document.getElementById('countyID').value = datum.postSted;
+        document.getElementById('houseLetter').value = datum.adresseBokstav;
         this.address = {
           "streetName": document.getElementById('streetName').value,
           "houseNumber": document.getElementById('houseNumber').value,
           "postCode": document.getElementById('postCode').value,
           "postCity": document.getElementById('countyID').value,
+          "houseLetter": document.getElementById('houseLetter').value,
         }
 
         const update = settingsChanged(this.address);
@@ -137,23 +140,15 @@
     const address = {
       "streetName": $('#streetName').val(),
       "houseNumber": $('#houseNumber').val(),
+      "houseLetter": $('#houseLetter').val(),
       "postCode": $('#postCode').val(),
       "postCity": $('#countyID').val(),
     };
 
     try {
       const data = await Homey.emit('checkAddress', address);
-
-      // changeTitle('Fant din adresse!', `Vi fant din adresse. Sjekker om du har en avfallskalender for denne adressen...`);
-
-      $('#showAddressID').val(data.addressID);
-      $('#countyID').val(data.countyId);
-      $('#addressCode').val(data.addressCode);
-      $('#addressID').val(data.addressID);
-
       const calendarData = await Homey.emit('getCalendar', data);
 
-      
       Homey.hideLoadingOverlay();
 
       if (calendarData && calendarData.length > 0) {
@@ -176,11 +171,10 @@
 
       $('#streetName').val('');
       $('#houseNumber').val('');
+      $('#houseLetter').val('');
       $('#postCode').val('');
-      $('#addressID').val('');
       $('#provider').val('');
       $('#countyID').val('');
-      $('#addressCode').val('');
 
     }
   });
