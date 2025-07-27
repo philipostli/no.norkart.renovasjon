@@ -36,7 +36,7 @@
       {
         "id": "isSpecificWaste",
         "title": {
-          "no": "Søppeltype hentes !{{|ikke}} når",
+          "no": "Avfallstype hentes !{{|ikke}} når",
           "en": "Waste type is !{{|not}} picked up when"
         },
         "titleFormatted": {
@@ -44,7 +44,7 @@
           "en": "[[wasteType]] is !{{|not}} picked up [[when]]"
         },
         "hint": {
-          "no": "Dette kortet trigges dersom søppeltypen hentes enten i dag eller i morgen.",
+          "no": "Dette kortet trigges dersom avfalltypen hentes enten i dag eller i morgen.",
           "en": "This card is triggered when the waste type is picked up either today or tomorrow."
         },
         "args": [
@@ -57,7 +57,7 @@
             "type": "dropdown",
             "name": "wasteType",
             "title": {
-              "no": "Søppeltype",
+              "no": "Avfallstype",
               "en": "Waste type"
             },
             "values": [
@@ -429,8 +429,8 @@
     "waste_glass": {
       "type": "string",
       "title": {
-        "no": "Glass",
-        "en": "Glass"
+        "no": "Glass/Metall",
+        "en": "Glass/Metal"
       },
       "getable": true,
       "setable": true,

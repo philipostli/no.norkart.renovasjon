@@ -1,8 +1,8 @@
 {
   "type": "string",
   "title": {
-    "no": "Glass",
-    "en": "Glass"
+    "no": "Glass/Metall",
+    "en": "Glass/Metal"
   },
   "getable": true,
   "setable": true,
