@@ -89,17 +89,22 @@ function runTests() {
     totalTests += results.total;
   });
   
+  // Run calendar processing test
+  console.log('\n' + '='.repeat(50));
+  const { runCalendarTest } = require('./test-calendar-processing');
+  const calendarTestPassed = runCalendarTest();
+  
   // Overall summary
   console.log('\n' + '='.repeat(60));
   console.log('🏆 OVERALL TEST RESULTS');
   console.log('='.repeat(60));
-  console.log(`📁 Test files: ${testFiles.length}`);
-  console.log(`🧪 Total tests: ${totalTests}`);
-  console.log(`✅ Total passed: ${totalPassed}`);
-  console.log(`❌ Total failed: ${totalFailed}`);
-  console.log(`📈 Overall success rate: ${Math.round((totalPassed / totalTests) * 100)}%`);
+  console.log(`📁 Test files: ${testFiles.length + 1}`);
+  console.log(`🧪 Total tests: ${totalTests + 18}`); // 18 tests in calendar processing (5 date + 5 capability + 5 waste type + 2 tomorrow + 1 earliest)
+  console.log(`✅ Total passed: ${totalPassed + (calendarTestPassed ? 18 : 0)}`);
+  console.log(`❌ Total failed: ${totalFailed + (calendarTestPassed ? 0 : 18)}`);
+  console.log(`📈 Overall success rate: ${Math.round(((totalPassed + (calendarTestPassed ? 18 : 0)) / (totalTests + 18)) * 100)}%`);
   
-  if (totalFailed === 0) {
+  if (totalFailed === 0 && calendarTestPassed) {
     console.log('\n🎉 All tests passed across all test files!');
     process.exit(0);
   } else {
