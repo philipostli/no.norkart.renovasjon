@@ -392,7 +392,7 @@ module.exports = class MyDevice extends Homey.Device {
       { keywords: ['glass'], capability: 'waste_glass' },
       { keywords: ['plast', 'plastic'], capability: 'waste_plastic' },
       { keywords: ['spesial', 'special'], capability: 'waste_special' },
-      { keywords: ['tekstil'], capability: 'waste_clothes' },
+      { keywords: ['tekstil', 'klær'], capability: 'waste_clothes' },
       { keywords: ['hage', 'garden'], capability: 'waste_garden' },
       { keywords: ['hvitevarer', 'EE', 'farlig'], capability: 'waste_electrical' },
       { keywords: ['mat', 'bio', 'organic'], capability: 'waste_bio' }
@@ -422,7 +422,7 @@ module.exports = class MyDevice extends Homey.Device {
       'glass': ['glass'],
       'plastic': ['plast', 'plastic'],
       'special': ['spesial', 'special'],
-      'clothes': ['tekstil'],
+      'clothes': ['tekstil', 'klær'],
       'garden': ['hage', 'garden'],
       'electrical': ['hvitevarer', 'EE', 'farlig'],
       'bio': ['mat', 'bio', 'organic']
