@@ -216,6 +216,9 @@ module.exports = class MyDevice extends Homey.Device {
       const settings = await this.getSettings();
       // this.log(settings);
 
+      // Remove capabilities that are no longer in the calendar data
+      await this.removeObsoleteCapabilities(wasteData, settings);
+
       // Iterate over the wasteData object keys (fraction IDs)
       for (const fractionId of Object.keys(wasteData)) {
         const nextDate = wasteData[fractionId];
@@ -291,6 +294,39 @@ module.exports = class MyDevice extends Homey.Device {
           // Annen feil
           this.error(this.homey.__('device.error.general'), error.message);
         }
+    }
+  }
+
+  async removeObsoleteCapabilities(wasteData, settings) {
+    try {
+      // Get all waste-related capabilities currently on the device
+      const currentCapabilities = this.getCapabilities().filter(cap => cap.startsWith('waste_'));
+      
+      // Build set of valid capability names from current wasteData
+      const validCapabilities = new Set();
+      
+      if (this.fractions) {
+        for (const fractionId of Object.keys(wasteData)) {
+          const fraction = this.fractions.find(f => f.Id == fractionId);
+          if (fraction) {
+            const capabilityName = this.getCapabilityNameForFraction(fraction.Navn);
+            if (capabilityName) {
+              validCapabilities.add(capabilityName);
+            }
+          }
+        }
+      }
+      
+      // Remove capabilities that are no longer valid
+      for (const capability of currentCapabilities) {
+        if (!validCapabilities.has(capability)) {
+          this.log(`Removing obsolete capability: ${capability}`);
+          await this.removeCapability(capability);
+        }
+      }
+      
+    } catch (error) {
+      this.homey.error('Failed to remove obsolete capabilities:', error);
     }
   }
 
