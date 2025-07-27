@@ -512,9 +512,11 @@ module.exports = class MyDevice extends Homey.Device {
       
       const nextPickupText = `${daysDiff} ${this.homey.__('device.pickup.days_to')} ${fractionName}`;
       
-      if (!this.hasCapability('next_pickup_days')) {
-        await this.addCapability('next_pickup_days');
+      // Always remove and re-add to ensure it appears last
+      if (this.hasCapability('next_pickup_days')) {
+        await this.removeCapability('next_pickup_days');
       }
+      await this.addCapability('next_pickup_days');
       await this.setCapabilityValue('next_pickup_days', nextPickupText);
       
       // this.log(`Updated next pickup: ${nextPickupText}`);
