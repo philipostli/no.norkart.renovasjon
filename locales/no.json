@@ -29,6 +29,7 @@
     },
     "pickup": {
       "days_to": "dager til"
-    }
+    },
+    "waste_type_tomorrow": "Avfallstype hentes i morgen"
   }
 }

@@ -29,6 +29,7 @@
     },
     "pickup": {
       "days_to": "days until"
-    }
+    },
+    "waste_type_tomorrow": "Wastetype picked up tomorrow"
   }
 }

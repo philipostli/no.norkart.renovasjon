@@ -1,0 +1,22 @@
+{
+  "id": "isWastePickedUp",
+  "title": {
+    "no": "Avfall hentes !{{|ikke}} i morgen",
+    "en": "Waste is !{{|not}} picked up tomorrow"
+  },
+  "titleFormatted": {
+    "no": "Avfall hentes !{{|ikke}} i morgen",
+    "en": "Waste is !{{|not}} picked up tomorrow"
+  },
+  "hint": {
+    "no": "Dette kortet trigges dersom avfall uansett type hentes i morgen. Typen avfall kan leses i token.",
+    "en": "This card is triggered when any waste type is picked up tomorrow. The waste type can be read in the token."
+  },
+  "args": [
+    {
+      "type": "device",
+            "name": "device",
+      "filter": "driver_id=renovasjon"
+    }
+    ]
+}

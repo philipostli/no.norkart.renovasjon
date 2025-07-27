@@ -11,6 +11,13 @@ module.exports = class MyDevice extends Homey.Device {
    */
   async onInit() {
     this.log('MinRenovasjon has been initialized');
+    
+    // Create device-specific wasteType token
+    this.wasteTypeToken = await this.homey.flow.createToken(`wasteType_${this.getData().id}`, {
+      type: "string",
+      title: `${this.homey.__('device.waste_type_tomorrow')} - ${this.getName()}`
+    });
+
     const settings = await this.getSettings();
     // this.log(this.getSettings());
     await this.updateFractions(settings.countyId, settings.streetName, settings.addressCode, settings.houseNumber);
@@ -18,6 +25,9 @@ module.exports = class MyDevice extends Homey.Device {
     
     // Setup daily cron job for updates
     await this.setupDailyCronJob();
+
+    // Initial token update
+    await this.updateWasteTypeToken();
   }
 
   /**
@@ -112,6 +122,16 @@ module.exports = class MyDevice extends Homey.Device {
       this.cronJob.destroy();
       this.log('Cron job stopped and destroyed');
     }
+    
+    // Cleanup device-specific token
+    if (this.wasteTypeToken) {
+      try {
+        await this.wasteTypeToken.unregister();
+        this.log('WasteType token unregistered');
+      } catch (error) {
+        this.homey.error('Failed to unregister wasteType token:', error);
+      }
+    }
   }
 
   async setupDailyCronJob() {
@@ -126,6 +146,9 @@ module.exports = class MyDevice extends Homey.Device {
         // Update fractions and waste data
         await this.updateFractions(settings.countyId, settings.streetName, settings.addressCode, settings.houseNumber);
         await this.processMinRenovasjonResponse(settings.countyId, settings.streetName, settings.addressCode, settings.houseNumber);
+        
+        // Update wasteType token for tomorrow's pickup
+        await this.updateWasteTypeToken();
         
         this.log('Daily update completed successfully');
       } catch (error) {
@@ -142,7 +165,19 @@ module.exports = class MyDevice extends Homey.Device {
   async processMinRenovasjonResponse(countyID, streetName, streetCode, houseNumber) {
 
     try {
-      // Use ApiHelper to get calendar data
+      // Testdata: Use test calendar data instead of API call
+      // const data = [
+      //   {"FraksjonId":1,"Tommedatoer":["2025-07-28T00:00:00","2025-08-13T00:00:00"]},
+      //   {"FraksjonId":3,"Tommedatoer":["2025-07-27T00:00:00","2025-08-13T00:00:00"]},
+      //   {"FraksjonId":2,"Tommedatoer":["2025-07-30T00:00:00","2025-08-27T00:00:00"]},
+      //   {"FraksjonId":4,"Tommedatoer":["2025-07-28T00:00:00","2025-09-24T00:00:00"]},
+      //   {"FraksjonId":7,"Tommedatoer":["2025-07-28T00:00:00","2025-08-27T00:00:00"]}
+      // ];
+      
+      // this.log('Using test calendar data instead of API');
+      
+      // Original API code (commented out for testing):
+      
       const addressData = {
         countyId: countyID,
         streetName: streetName,
@@ -156,6 +191,7 @@ module.exports = class MyDevice extends Homey.Device {
         this.log('No calendar data found');
         return;
       }
+      
 
     
 
@@ -337,6 +373,108 @@ module.exports = class MyDevice extends Homey.Device {
 
     // Return the Date object from wasteData
     return this.wasteData[fraction.Id] || null;
+  }
+
+  getWastePickedUpTomorrow() {
+    // Use the new function to get all pickups, but return in old format for compatibility
+    const pickups = this.getAllWastePickedUpTomorrow();
+    
+    if (pickups.length > 0) {
+      // Return the first pickup for backward compatibility
+      return { 
+        hasPickup: true, 
+        wasteType: pickups[0].wasteType,
+        fractionName: pickups[0].fractionName 
+      };
+    }
+
+    return { hasPickup: false, wasteType: null };
+  }
+
+  async updateWasteTypeToken() {
+    try {
+      // Get all waste types being picked up tomorrow
+      const tomorrowPickups = this.getAllWastePickedUpTomorrow();
+      
+      if (tomorrowPickups.length > 0) {
+        // Get fraction names for all pickups
+        const fractionNames = tomorrowPickups.map(pickup => pickup.fractionName);
+        
+        // Format the names with proper Norwegian grammar
+        let tokenValue;
+        if (fractionNames.length === 1) {
+          tokenValue = fractionNames[0];
+        } else if (fractionNames.length === 2) {
+          tokenValue = `${fractionNames[0]} og ${fractionNames[1]}`;
+        } else {
+          // More than 2: use commas and "og" before the last one
+          const lastItem = fractionNames.pop();
+          tokenValue = `${fractionNames.join(', ')} og ${lastItem}`;
+        }
+        
+        await this.wasteTypeToken.setValue(tokenValue);
+        this.log(`Updated wasteType token to: ${tokenValue}`);
+      } else {
+        // No pickup tomorrow, set to empty value
+        await this.wasteTypeToken.setValue('');
+        this.log('Updated wasteType token to empty (no pickup tomorrow)');
+      }
+    } catch (error) {
+      this.homey.error('Failed to update wasteType token:', error);
+    }
+  }
+
+  getAllWastePickedUpTomorrow() {
+    if (!this.wasteData || !this.fractions) {
+      return [];
+    }
+
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    tomorrow.setHours(0, 0, 0, 0); // Reset time to start of day
+
+    const settings = this.getSettings();
+    const pickups = [];
+
+    // Check all waste data for tomorrow's pickups
+    for (const fractionId of Object.keys(this.wasteData)) {
+      const pickupDate = this.wasteData[fractionId];
+      const pickupDateNormalized = new Date(pickupDate);
+      pickupDateNormalized.setHours(0, 0, 0, 0);
+
+      if (pickupDateNormalized.getTime() === tomorrow.getTime()) {
+        // Find the fraction info
+        const fraction = this.fractions.find(f => f.Id == fractionId);
+        if (fraction) {
+          const capabilityName = this.getCapabilityNameForFraction(fraction.Navn);
+          
+          // Only include if this capability is enabled in settings
+          if (capabilityName && settings[capabilityName] !== false) {
+            // Map capability name to wasteType for the flow
+            const wasteTypeMap = {
+              'waste_general': 'general',
+              'waste_paper': 'paper',
+              'waste_plastic': 'plastic',
+              'waste_bio': 'bio',
+              'waste_glass': 'glass',
+              'waste_garden': 'garden',
+              'waste_special': 'special',
+              'waste_electrical': 'electrical',
+              'waste_clothes': 'clothes'
+            };
+            
+            const wasteType = wasteTypeMap[capabilityName] || 'general';
+            
+            pickups.push({ 
+              wasteType: wasteType,
+              fractionName: fraction.Navn 
+            });
+          }
+        }
+      }
+    }
+
+    return pickups;
   }
 
   async updateNextPickupDays(settings, earliestDate = null, earliestFractionId = null) {

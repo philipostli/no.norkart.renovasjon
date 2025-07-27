@@ -14,7 +14,7 @@ module.exports = class MyApp extends Homey.App {
   }
 
   async initFlows() {
-    const condition = await this.homey.flow
+    await this.homey.flow
       .getConditionCard('isSpecificWaste')
       .registerRunListener(
         (args) => {
@@ -47,7 +47,17 @@ module.exports = class MyApp extends Homey.App {
           }
         }
       )
-    
+    await this.homey.flow
+      .getConditionCard('isWastePickedUp')
+      .registerRunListener(
+        (args) => {
+          // Check if any waste is picked up tomorrow
+          const result = args.device.getWastePickedUpTomorrow();
+          
+          return result.hasPickup;
+        }
+      )
+ 
   }
 
 };
