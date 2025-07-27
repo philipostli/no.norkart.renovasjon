@@ -7,5 +7,8 @@
   },
   "0.2.0": {
     "en": "Lagt til \"Hvis\"-kort for henting i morgen, med tag for avfallstypen."
+  },
+  "0.2.1": {
+    "en": "Lagt til tags for hver avfallstype for å sjekke om det hentes i morgen + endret noen ikon, sikret korrekt oppdatering og rekkefølge"
   }
 }
