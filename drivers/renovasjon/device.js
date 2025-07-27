@@ -18,6 +18,27 @@ module.exports = class MyDevice extends Homey.Device {
       title: `${this.homey.__('device.waste_type_tomorrow')} - ${this.getName()}`
     });
 
+    // Create individual waste type tokens for tomorrow's pickup (yes/no)
+    this.wasteTokens = {};
+    const wasteTypes = [
+      { key: 'general', name: 'Restavfall' },
+      { key: 'paper', name: 'Papir' },
+      { key: 'glass', name: 'Glass' },
+      { key: 'plastic', name: 'Plast' },
+      { key: 'bio', name: 'Matavfall' },
+      { key: 'garden', name: 'Hageavfall' },
+      { key: 'clothes', name: 'Tekstil' },
+      { key: 'electrical', name: 'Elektrisk' },
+      { key: 'special', name: 'Spesialavfall' }
+    ];
+
+    for (const wasteType of wasteTypes) {
+      this.wasteTokens[wasteType.key] = await this.homey.flow.createToken(`waste${wasteType.key.charAt(0).toUpperCase() + wasteType.key.slice(1)}Tomorrow_${this.getData().id}`, {
+        type: "boolean",
+        title: `${wasteType.name} i morgen - ${this.getName()}`
+      });
+    }
+
     const settings = await this.getSettings();
     // this.log(this.getSettings());
     await this.updateFractions(settings.countyId, settings.streetName, settings.addressCode, settings.houseNumber);
@@ -28,6 +49,7 @@ module.exports = class MyDevice extends Homey.Device {
 
     // Initial token update
     await this.updateWasteTypeToken();
+    await this.updateIndividualWasteTokens();
   }
 
   /**
@@ -97,6 +119,7 @@ module.exports = class MyDevice extends Homey.Device {
       // Recalculate next_pickup_days based on enabled waste types
       if (this.wasteData && this.fractions) {
         await this.updateNextPickupDays(newSettings);
+        await this.updateIndividualWasteTokens();
       }
     }
   }
@@ -123,13 +146,25 @@ module.exports = class MyDevice extends Homey.Device {
       this.log('Cron job stopped and destroyed');
     }
     
-    // Cleanup device-specific token
+    // Cleanup device-specific tokens
     if (this.wasteTypeToken) {
       try {
         await this.wasteTypeToken.unregister();
         this.log('WasteType token unregistered');
       } catch (error) {
         this.homey.error('Failed to unregister wasteType token:', error);
+      }
+    }
+
+    // Cleanup individual waste tokens
+    if (this.wasteTokens) {
+      for (const [wasteType, token] of Object.entries(this.wasteTokens)) {
+        try {
+          await token.unregister();
+          this.log(`${wasteType} token unregistered`);
+        } catch (error) {
+          this.homey.error(`Failed to unregister ${wasteType} token:`, error);
+        }
       }
     }
   }
@@ -149,6 +184,7 @@ module.exports = class MyDevice extends Homey.Device {
         
         // Update wasteType token for tomorrow's pickup
         await this.updateWasteTypeToken();
+        await this.updateIndividualWasteTokens();
         
         this.log('Daily update completed successfully');
       } catch (error) {
@@ -457,6 +493,31 @@ module.exports = class MyDevice extends Homey.Device {
       }
     } catch (error) {
       this.homey.error('Failed to update wasteType token:', error);
+    }
+  }
+
+  async updateIndividualWasteTokens() {
+    try {
+      if (!this.wasteTokens) {
+        return; // Tokens not initialized yet
+      }
+
+      // Get all waste types being picked up tomorrow
+      const tomorrowPickups = this.getAllWastePickedUpTomorrow();
+      const tomorrowWasteTypes = new Set(tomorrowPickups.map(pickup => pickup.wasteType));
+
+      // Update each individual waste token
+      const wasteTypes = ['general', 'paper', 'glass', 'plastic', 'bio', 'garden', 'clothes', 'electrical', 'special'];
+      
+      for (const wasteType of wasteTypes) {
+        if (this.wasteTokens[wasteType]) {
+          const hasPickup = tomorrowWasteTypes.has(wasteType);
+          await this.wasteTokens[wasteType].setValue(hasPickup);
+          // this.log(`Updated ${wasteType} token to: ${hasPickup}`);
+        }
+      }
+    } catch (error) {
+      this.homey.error('Failed to update individual waste tokens:', error);
     }
   }
 
