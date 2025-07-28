@@ -210,10 +210,6 @@ module.exports = class MyDevice extends Homey.Device {
       //   {"FraksjonId":7,"Tommedatoer":["2025-07-28T00:00:00","2025-08-27T00:00:00"]}
       // ];
       
-      // this.log('Using test calendar data instead of API');
-      
-      // Original API code (commented out for testing):
-      
       const addressData = {
         countyId: countyID,
         streetName: streetName,
@@ -392,6 +388,35 @@ module.exports = class MyDevice extends Homey.Device {
     return null; // No matching capability found
   }
 
+  getStandardizedFractionName(fractionName) {
+    // Get current language from Homey system
+    const language = this.homey.i18n.getLanguage();
+    
+    // Define keywords to search for in fraction names and their standardized titles
+    const keywordToTitle = [
+      { keywords: ['rest'], titleNo: 'Restavfall', titleEn: 'General waste' },
+      { keywords: ['papir', 'papp'], titleNo: 'Papir', titleEn: 'Paper' },
+      { keywords: ['glass'], titleNo: 'Glass', titleEn: 'Glass' },
+      { keywords: ['plast', 'plastic'], titleNo: 'Plast', titleEn: 'Plastic' },
+      { keywords: ['spesial', 'special'], titleNo: 'Spesialavfall', titleEn: 'Special waste' },
+      { keywords: ['tekstil', 'klær'], titleNo: 'Tekstil', titleEn: 'Textiles' },
+      { keywords: ['hage', 'garden'], titleNo: 'Hageavfall', titleEn: 'Garden waste' },
+      { keywords: ['hvitevarer', 'EE', 'farlig'], titleNo: 'Elektrisk', titleEn: 'Electrical' },
+      { keywords: ['mat', 'bio', 'organic'], titleNo: 'Matavfall', titleEn: 'Bio waste' }
+    ];
+
+    const fractionNameLower = fractionName.toLowerCase();
+    
+    // Find matching title based on keywords
+    for (const mapping of keywordToTitle) {
+      if (mapping.keywords.some(keyword => fractionNameLower.includes(keyword.toLowerCase()))) {
+        return language === 'en' ? mapping.titleEn : mapping.titleNo;
+      }
+    }
+    
+    return fractionName; // Return original name if no match found
+  }
+
   getWastePickupDate(wasteType) {
     if (!this.wasteData || !this.fractions) {
       return null;
@@ -543,10 +568,11 @@ module.exports = class MyDevice extends Homey.Device {
             };
             
             const wasteType = wasteTypeMap[capabilityName] || 'general';
+            const standardizedName = this.getStandardizedFractionName(fraction.Navn);
             
             pickups.push({ 
               wasteType: wasteType,
-              fractionName: fraction.Navn 
+              fractionName: standardizedName 
             });
           }
         }
@@ -610,7 +636,8 @@ module.exports = class MyDevice extends Homey.Device {
           if (fraction) {
             const capabilityName = this.getCapabilityNameForFraction(fraction.Navn);
             if (capabilityName && settings[capabilityName] !== false) {
-              fractionsOnEarliestDate.push(fraction.Navn);
+              const standardizedName = this.getStandardizedFractionName(fraction.Navn);
+              fractionsOnEarliestDate.push(standardizedName);
             }
           }
         }
