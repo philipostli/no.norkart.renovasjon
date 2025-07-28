@@ -229,11 +229,19 @@ module.exports = class MyDevice extends Homey.Device {
 
 
       const wasteData = {};
+      const today = new Date();
+      today.setHours(0, 0, 0, 0); // Reset time to start of day
 
       data.forEach(item => {
         const fraction = item.FraksjonId;
         item.Tommedatoer.forEach(dateString => {
           const date = new Date(dateString);
+          
+          // Skip dates that are in the past
+          if (date < today) {
+            return;
+          }
+          
           if (!wasteData[fraction] || date < wasteData[fraction]) {
             wasteData[fraction] = date;
           }
