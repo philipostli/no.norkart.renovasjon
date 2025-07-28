@@ -20,6 +20,30 @@
         "no_calendar_desc": "Vi fant ingen tømmekalender for din adresse. Vennligst sjekk at du har skrevet inn riktig adresse, og om din kommune bruker MinRenovasjon.",
         "address_error": "Feil i adresse!",
         "address_error_desc": "Beklager, vi fant ikke informasjon om din adresse. Det kan være at du har skrevet feil, eller at din adresse ikke er registrert i kartet."
+      },
+      "county": {
+        "title": "Velg din kommune",
+        "desc": "Søk og velg kommunen din for å fortsette",
+        "search_placeholder": "Søk etter kommune...",
+        "loading": "Laster kommuner...",
+        "loading_kartverket": "Laster kommuner fra Kartverket...",
+        "loading_supported": "Laster støttede kommuner...",
+        "continue": "Fortsett",
+        "supported": "Støttet",
+        "not_supported": "Ikke støttet",
+        "municipality": "Kommune",
+        "no_municipalities": "Ingen kommuner funnet",
+        "api_error": "Feil ved API-kall",
+        "using_test_data": "bruker testdata",
+        "loading_error": "Feil ved lasting av data",
+        "showing_test_data": "Viser testdata...",
+        "municipalities_loaded": "kommuner lastet",
+        "municipalities_supported": "støttet",
+        "municipalities_shown": "kommuner vist",
+        "unsupported_title": "Kommune ikke støttet",
+        "unsupported_message": "Er ikke kommunen din støttet? Gå likevel videre for å se om tømmekalender eksisterer.",
+        "try_anyway": "Fortsett likevel",
+        "cancel": "Avbryt"
       }
 	},
   "device": {

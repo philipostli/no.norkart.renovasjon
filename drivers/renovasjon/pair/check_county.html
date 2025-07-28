@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <title>Velg kommune</title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: #f5f5f5;
+        }
+        
+        .container {
+            max-width: 600px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+        
+        .header {
+            background: #2196F3;
+            color: white;
+            padding: 20px;
+            text-align: center;
+        }
+        
+        .header h2 {
+            margin: 0;
+            font-size: 24px;
+        }
+        
+        .header p {
+            margin: 10px 0 0 0;
+            opacity: 0.9;
+        }
+        
+        .search-box {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .search-input {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #ddd;
+            border-radius: 6px;
+            font-size: 16px;
+            box-sizing: border-box;
+        }
+        
+        .search-input:focus {
+            outline: none;
+            border-color: #2196F3;
+        }
+        
+        .county-list {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .county-item {
+            padding: 15px 20px;
+            border-bottom: 1px solid #eee;
+            cursor: pointer;
+            transition: background-color 0.2s;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .county-item:hover {
+            background-color: #f8f9fa;
+        }
+        
+        .county-item.selected {
+            background-color: #e3f2fd;
+            border-left: 4px solid #2196F3;
+        }
+        
+        .county-item.unsupported {
+            opacity: 0.4;
+            filter: blur(0.5px);
+            cursor: not-allowed;
+        }
+        
+        .county-item.unsupported:hover {
+            background-color: white;
+        }
+        
+        .county-info {
+            flex-grow: 1;
+        }
+        
+        .county-name {
+            font-weight: 500;
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+        
+        .county-number {
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .county-status {
+            font-size: 12px;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-weight: 500;
+        }
+        
+        .supported {
+            background-color: #e8f5e8;
+            color: #2e7d32;
+        }
+        
+        .unsupported-status {
+            background-color: #ffebee;
+            color: #c62828;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 20px;
+            color: #666;
+            font-size: 14px;
+        }
+        
+        .error {
+            text-align: center;
+            padding: 40px;
+            color: #c62828;
+        }
+        
+        .continue-btn {
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: #2196F3;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            font-size: 16px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(33, 150, 243, 0.3);
+            display: none;
+        }
+        
+        .continue-btn:hover {
+            background: #1976D2;
+        }
+        
+        .continue-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+        
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: none;
+            z-index: 1000;
+        }
+        
+        .modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+            max-width: 400px;
+            width: 90%;
+            z-index: 1001;
+        }
+        
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .modal-title {
+            margin: 0;
+            font-size: 18px;
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .modal-body {
+            padding: 20px;
+        }
+        
+        .modal-message {
+            color: #666;
+            line-height: 1.5;
+            margin: 0;
+        }
+        
+        .modal-footer {
+            padding: 15px 20px;
+            border-top: 1px solid #eee;
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+        
+        .modal-btn {
+            padding: 8px 16px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+        
+        .modal-btn-primary {
+            background: #2196F3;
+            color: white;
+        }
+        
+        .modal-btn-primary:hover {
+            background: #1976D2;
+        }
+        
+        .modal-btn-secondary {
+            background: #f5f5f5;
+            color: #666;
+        }
+        
+        .modal-btn-secondary:hover {
+            background: #e0e0e0;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h2 data-i18n="pair.county.title">Velg din kommune</h2>
+            <p data-i18n="pair.county.desc">Søk og velg kommunen din for å fortsette</p>
+        </div>
+        
+        <div class="search-box">
+            <input type="text" class="search-input" data-i18n-placeholder="pair.county.search_placeholder" placeholder="Søk etter kommune..." id="searchInput">
+        </div>
+        
+        <div id="countyList" class="county-list">
+            <div class="loading" data-i18n="pair.county.loading">Laster kommuner...</div>
+        </div>
+        
+        <div style="padding: 20px; background: #f0f0f0; margin: 10px; font-size: 12px;" id="debugInfo">
+            JavaScript laster...
+        </div>
+    </div>
+    
+    <button class="continue-btn" id="continueBtn" onclick="continueToNext()" data-i18n="pair.county.continue">Fortsett</button>
+
+    <!-- Modal for unsupported counties -->
+    <div class="modal-overlay" id="modalOverlay" onclick="closeModal()">
+        <div class="modal" onclick="event.stopPropagation()">
+            <div class="modal-header">
+                <h3 class="modal-title" data-i18n="pair.county.unsupported_title">Kommune ikke støttet</h3>
+            </div>
+            <div class="modal-body">
+                <p class="modal-message" data-i18n="pair.county.unsupported_message">Er ikke kommunen din støttet? Gå likevel videre for å se om tømmekalender eksisterer.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="modal-btn modal-btn-secondary" onclick="closeModal()" data-i18n="pair.county.cancel">Avbryt</button>
+                <button class="modal-btn modal-btn-primary" onclick="continueWithUnsupported()" data-i18n="pair.county.try_anyway">Fortsett likevel</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let allCounties = [];
+        let supportedCounties = [];
+        let selectedCounty = null;
+        let pendingUnsupportedCounty = null;
+
+        function loadData() {
+            var debugDiv = document.getElementById('debugInfo');
+            if (debugDiv) {
+                debugDiv.innerHTML = 'Laster data fra API...';
+            }
+            
+            console.log('Starting to load data from APIs...');
+            document.getElementById('countyList').innerHTML = '<div class="loading">' + (Homey.__('pair.county.loading_kartverket') || 'Laster kommuner fra Kartverket...') + '</div>';
+            
+            // Load all counties from Kartverket
+            fetch('https://api.kartverket.no/kommuneinfo/v1/kommuner?sorter=kommunenavnNorsk')
+                .then(function(response) {
+                    if (!response.ok) {
+                        throw new Error('Kartverket API failed: ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(function(countiesData) {
+                    console.log('Counties loaded from Kartverket:', countiesData.length);
+                    allCounties = countiesData;
+                    
+                    if (debugDiv) {
+                        debugDiv.innerHTML = (Homey.__('pair.county.loading_supported') || 'Laster støttede kommuner...') + ' fra Norkart...';
+                    }
+                    
+                    document.getElementById('countyList').innerHTML = '<div class="loading">' + (Homey.__('pair.county.loading_supported') || 'Laster støttede kommuner...') + '</div>';
+                    
+                    // Load supported counties from Norkart
+                    return fetch('https://www.webatlas.no/wacloud/servicerepository/CatalogueService.svc/json/GetRegisteredAppCustomers?Appid=MobilOS-NorkartRenovasjon');
+                })
+                .then(function(response) {
+                    if (!response.ok) {
+                        throw new Error('Norkart API failed: ' + response.status);
+                    }
+                    return response.json();
+                })
+                .then(function(supportedData) {
+                    console.log('Supported counties loaded from Norkart:', supportedData.length);
+                    
+                    // Create set of supported county numbers for quick lookup
+                    var supportedNumbers = [];
+                    for (var i = 0; i < supportedData.length; i++) {
+                        supportedNumbers.push(supportedData[i].Number);
+                    }
+                    supportedCounties = new Set(supportedNumbers);
+                    
+                    if (debugDiv) {
+                        debugDiv.innerHTML = allCounties.length + ' ' + (Homey.__('pair.county.municipalities_loaded') || 'kommuner lastet') + ', ' + supportedNumbers.length + ' ' + (Homey.__('pair.county.municipalities_supported') || 'støttet');
+                    }
+                    
+                    console.log('Rendering counties...');
+                    renderCounties(allCounties);
+                })
+                .catch(function(error) {
+                    console.error('Error loading data:', error);
+                    
+                    if (debugDiv) {
+                        debugDiv.innerHTML = (Homey.__('pair.county.api_error') || 'Feil ved API-kall') + ': ' + error.message + ' - ' + (Homey.__('pair.county.using_test_data') || 'bruker testdata');
+                    }
+                    
+                    // Fallback to test data
+                    allCounties = [
+                        { kommunenavn: "Oslo", kommunenavnNorsk: "Oslo", kommunenummer: "0301" },
+                        { kommunenavn: "Bergen", kommunenavnNorsk: "Bergen", kommunenummer: "4601" },
+                        { kommunenavn: "Trondheim", kommunenavnNorsk: "Trondheim", kommunenummer: "5001" },
+                        { kommunenavn: "Stavanger", kommunenavnNorsk: "Stavanger", kommunenummer: "1103" },
+                        { kommunenavn: "Ålesund", kommunenavnNorsk: "Ålesund", kommunenummer: "1508" }
+                    ];
+                    
+                    supportedCounties = new Set(["1508", "5001"]);
+                    
+                    document.getElementById('countyList').innerHTML = 
+                        '<div class="error">' + (Homey.__('pair.county.loading_error') || 'Feil ved lasting av data') + ': ' + error.message + '<br>' + (Homey.__('pair.county.showing_test_data') || 'Viser testdata...') + '</div>';
+                    
+                    setTimeout(function() {
+                        renderCounties(allCounties);
+                    }, 2000);
+                });
+        }
+
+        function renderCounties(counties) {
+            var debugDiv = document.getElementById('debugInfo');
+            if (debugDiv) {
+                debugDiv.innerHTML = 'Rendering ' + counties.length + ' kommuner...';
+            }
+            
+            console.log('Rendering counties, count:', counties.length);
+            var listElement = document.getElementById('countyList');
+            
+            if (!listElement) {
+                console.error('County list element not found!');
+                if (debugDiv) {
+                    debugDiv.innerHTML = 'ERROR: County list element not found!';
+                }
+                return;
+            }
+            
+            if (counties.length === 0) {
+                listElement.innerHTML = '<div class="loading">' + (Homey.__('pair.county.no_municipalities') || 'Ingen kommuner funnet') + '</div>';
+                return;
+            }
+
+            var html = '';
+            var supportedCount = 0;
+            
+            for (var i = 0; i < counties.length; i++) {
+                var county = counties[i];
+                var isSupported = supportedCounties.has(county.kommunenummer);
+                var statusClass = isSupported ? 'supported' : 'unsupported-status';
+                var statusText = isSupported ? (Homey.__('pair.county.supported') || 'Støttet') : (Homey.__('pair.county.not_supported') || 'Ikke støttet');
+                var itemClass = isSupported ? '' : 'unsupported';
+                var onclick = isSupported ? 
+                    "selectCounty('" + county.kommunenummer + "', '" + county.kommunenavnNorsk + "')" : 
+                    "showUnsupportedModal('" + county.kommunenummer + "', '" + county.kommunenavnNorsk + "')";
+
+                if (isSupported) {
+                    supportedCount++;
+                }
+
+                html += '<div class="county-item ' + itemClass + '" ';
+                html += 'onclick="' + onclick + '" ';
+                html += 'data-county-number="' + county.kommunenummer + '" ';
+                html += 'data-county-name="' + county.kommunenavnNorsk + '">';
+                html += '<div class="county-info">';
+                html += '<div class="county-name">' + county.kommunenavnNorsk + '</div>';
+                html += '<div class="county-number">' + (Homey.__('pair.county.municipality') || 'Kommune') + ' ' + county.kommunenummer + '</div>';
+                html += '</div>';
+                html += '<div class="county-status ' + statusClass + '">' + statusText + '</div>';
+                html += '</div>';
+            }
+            
+            listElement.innerHTML = html;
+            
+            if (debugDiv) {
+                debugDiv.innerHTML = counties.length + ' ' + (Homey.__('pair.county.municipalities_shown') || 'kommuner vist') + ' (' + supportedCount + ' ' + (Homey.__('pair.county.municipalities_supported') || 'støttet') + ')';
+            }
+            
+            console.log('Counties rendered successfully');
+        }
+
+        function selectCounty(countyNumber, countyName) {
+            // Remove previous selection
+            document.querySelectorAll('.county-item.selected').forEach(item => {
+                item.classList.remove('selected');
+            });
+
+            // Add selection to clicked item
+            const clickedItem = document.querySelector(`[data-county-number="${countyNumber}"]`);
+            if (clickedItem && !clickedItem.classList.contains('unsupported')) {
+                clickedItem.classList.add('selected');
+                selectedCounty = {
+                    number: countyNumber,
+                    name: countyName
+                };
+                
+                // Show continue button
+                document.getElementById('continueBtn').style.display = 'block';
+            }
+        }
+
+        function filterCounties() {
+            const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+            
+            if (searchTerm.trim() === '') {
+                // Show all counties when search is empty
+                renderCounties(allCounties);
+                return;
+            }
+            
+            const filteredCounties = allCounties.filter(county => 
+                county.kommunenavnNorsk.toLowerCase().includes(searchTerm) ||
+                county.kommunenummer.includes(searchTerm)
+            );
+            renderCounties(filteredCounties);
+        }
+
+        function continueToNext() {
+            if (selectedCounty) {
+                // Store selected county data for next step
+                Homey.emit('county_selected', selectedCounty);
+                Homey.nextView();
+            }
+        }
+
+        function showUnsupportedModal(countyNumber, countyName) {
+            pendingUnsupportedCounty = {
+                number: countyNumber,
+                name: countyName
+            };
+            
+            // Show modal
+            document.getElementById('modalOverlay').style.display = 'block';
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').style.display = 'none';
+            pendingUnsupportedCounty = null;
+        }
+
+        function continueWithUnsupported() {
+            if (pendingUnsupportedCounty) {
+                selectedCounty = pendingUnsupportedCounty;
+                
+                // Store selected county data and continue
+                Homey.emit('county_selected', selectedCounty);
+                Homey.nextView();
+            }
+            closeModal();
+        }
+
+        function initializeTranslations() {
+            // Initialize text content for elements with data-i18n
+            document.querySelectorAll('[data-i18n]').forEach(function(element) {
+                var key = element.getAttribute('data-i18n');
+                var translation = Homey.__(key);
+                if (translation && translation !== key) {
+                    element.textContent = translation;
+                }
+            });
+            
+            // Initialize placeholder for elements with data-i18n-placeholder
+            document.querySelectorAll('[data-i18n-placeholder]').forEach(function(element) {
+                var key = element.getAttribute('data-i18n-placeholder');
+                var translation = Homey.__(key);
+                if (translation && translation !== key) {
+                    element.placeholder = translation;
+                }
+            });
+            
+            console.log('Translations initialized');
+        }
+
+        // Initialize immediately without waiting for DOM
+        function initializeApp() {
+            var debugDiv = document.getElementById('debugInfo');
+            if (debugDiv) {
+                debugDiv.innerHTML = 'initializeApp() called';
+            }
+            
+            console.log('Starting initialization...');
+            
+            // Initialize translations for elements with data-i18n attributes
+            initializeTranslations();
+            
+            loadData();
+            
+            // Add search functionality
+            setTimeout(function() {
+                var searchInput = document.getElementById('searchInput');
+                if (searchInput) {
+                    searchInput.addEventListener('input', filterCounties);
+                    console.log('Search input listener added');
+                } else {
+                    console.error('Search input not found');
+                }
+            }, 500);
+        }
+        
+        // Try multiple initialization methods
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initializeApp);
+        } else {
+            initializeApp();
+        }
+        
+        // Also try with a timeout as fallback
+        setTimeout(initializeApp, 100);
+
+        // Handle back button
+        Homey.on('back', function() {
+            Homey.prevView();
+        });
+
+        // Handle ESC key to close modal
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeModal();
+            }
+        });
+    </script>
+</body>
+</html> 

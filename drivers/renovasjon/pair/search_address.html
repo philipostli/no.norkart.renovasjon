@@ -32,9 +32,19 @@
 <script type="text/javascript">
   $(document).ready(function () {
     var timeoutId;
+    var selectedCounty = null;
 
     Homey.setTitle(Homey.__(`pair.title`));
     Homey.setSubtitle(Homey.__(`pair.desc`));
+
+    // Listen for county selection from previous step
+    Homey.on('county_selected', function(county) {
+      selectedCounty = county;
+      console.log('Selected county:', county);
+      
+      // Update subtitle to show selected county
+      Homey.setSubtitle(Homey.__(`pair.desc`) + ' (Valgt kommune: ' + county.name + ')');
+    });
 
     setTimeout(function () {
       $('#kartverketAutocomplete').typeahead({

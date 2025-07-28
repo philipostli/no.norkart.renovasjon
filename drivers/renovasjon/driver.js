@@ -13,7 +13,13 @@ module.exports = class RenovationDriver extends Homey.Driver {
   }
 
   async onPair(session) {
-    await session.showView('search_address');
+    await session.showView('check_county');
+
+    session.setHandler("county_selected", async (county) => {
+      this.log("County selected:", county);
+      this.selectedCounty = county;
+      return true;
+    });
 
     session.setHandler("settingsChanged", async (data) => {
       // this.homey.log("settingsChanged");

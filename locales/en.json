@@ -20,6 +20,30 @@
       "no_calendar_desc": "We found no waste calendar for your address. Please check that you have entered the correct address, and that your municipality uses MinRenovasjon.",
       "address_error": "Address error!",
       "address_error_desc": "Sorry, we could not find information about your address. You may have entered it incorrectly, or your address is not registered in the map."
+    },
+    "county": {
+      "title": "Select your municipality",
+      "desc": "Search and select your municipality to continue",
+      "search_placeholder": "Search for municipality...",
+      "loading": "Loading municipalities...",
+      "loading_kartverket": "Loading municipalities from Kartverket...",
+      "loading_supported": "Loading supported municipalities...",
+      "continue": "Continue",
+      "supported": "Supported",
+      "not_supported": "Not supported",
+      "municipality": "Municipality",
+      "no_municipalities": "No municipalities found",
+      "api_error": "API call error",
+      "using_test_data": "using test data",
+      "loading_error": "Error loading data",
+      "showing_test_data": "Showing test data...",
+              "municipalities_loaded": "municipalities loaded",
+        "municipalities_supported": "supported",
+        "municipalities_shown": "municipalities shown",
+        "unsupported_title": "Municipality not supported",
+        "unsupported_message": "Is your municipality not supported? Continue anyway to see if waste calendar exists.",
+        "try_anyway": "Continue anyway",
+        "cancel": "Cancel"
     }
   },
   "device": {

@@ -153,7 +153,13 @@
   ],
   "pair": [
     {
-      "id": "search_address"
+      "id": "check_county"
+    },
+    {
+      "id": "search_address",
+      "navigation": {
+        "prev": "check_county"
+      }
     },
     {
       "id": "list_devices",
