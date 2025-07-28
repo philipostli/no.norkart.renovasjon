@@ -13,5 +13,8 @@
   },
   "0.2.2": {
     "en": "Vis alle avfallstyper som hentes neste. Standardiserte avfallstyper (ikke MinRenovasjon sine navn). Noe språkretting og oversettelser.."
+  },
+  "0.3.0": {
+    "en": "Lagt til sjekk på om kommunen bruker MinRenovasjon"
   }
 }
