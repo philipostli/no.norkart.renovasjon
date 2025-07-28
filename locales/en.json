@@ -31,6 +31,9 @@
       "days_to": "days until",
       "day_to": "day until"
     },
+    "grammar": {
+      "and": " and "
+    },
     "waste_type_tomorrow": "Wastetype picked up tomorrow"
   }
 }

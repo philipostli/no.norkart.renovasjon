@@ -425,6 +425,83 @@ module.exports = class MyDevice extends Homey.Device {
     return fractionName; // Return original name if no match found
   }
 
+  formatFractionNamesList(fractionNames) {
+    // Format list of fraction names with proper grammar using locales
+    if (fractionNames.length === 1) {
+      return fractionNames[0];
+    } else if (fractionNames.length === 2) {
+      const connector = this.homey.__('device.grammar.and');
+      return `${fractionNames[0]}${connector}${fractionNames[1]}`;
+    } else {
+      // More than 2: use commas and connector before the last one
+      const connector = this.homey.__('device.grammar.and');
+      const lastItem = fractionNames.pop();
+      return `${fractionNames.join(', ')}${connector}${lastItem}`;
+    }
+  }
+
+  getFractionsOnEarliestDate(settings = null) {
+    if (!this.wasteData || !this.fractions) {
+      return { earliestDate: null, fractions: [] };
+    }
+
+    // Find earliest date (no need to filter past dates - already done in processMinRenovasjonResponse)
+    let earliestDate = null;
+    for (const fractionId of Object.keys(this.wasteData)) {
+      const date = this.wasteData[fractionId];
+      
+      // Check if this fraction has a corresponding enabled capability (if settings provided)
+      if (settings) {
+        const fraction = this.fractions.find(f => f.Id == fractionId);
+        if (fraction) {
+          const capabilityName = this.getCapabilityNameForFraction(fraction.Navn);
+          if (capabilityName && settings[capabilityName] === false) {
+            continue; // Skip this fraction if its capability is disabled
+          }
+        }
+      }
+      
+      if (!earliestDate || date < earliestDate) {
+        earliestDate = date;
+      }
+    }
+
+    if (!earliestDate) {
+      return { earliestDate: null, fractions: [] };
+    }
+
+    // Find all fractions that have pickup on the earliest date
+    const fractionsOnEarliestDate = [];
+    for (const fractionId of Object.keys(this.wasteData)) {
+      const date = this.wasteData[fractionId];
+      
+      // Check if this date matches the earliest date
+      if (date.getTime() === earliestDate.getTime()) {
+        // Check if this fraction has a corresponding enabled capability (if settings provided)
+        const fraction = this.fractions.find(f => f.Id == fractionId);
+        if (fraction) {
+          const capabilityName = this.getCapabilityNameForFraction(fraction.Navn);
+          
+          if (settings && capabilityName && settings[capabilityName] === false) {
+            continue; // Skip this fraction if its capability is disabled
+          }
+          
+          if (!settings || (capabilityName && settings[capabilityName] !== false)) {
+            const standardizedName = this.getStandardizedFractionName(fraction.Navn);
+            fractionsOnEarliestDate.push({
+              id: parseInt(fractionId),
+              name: standardizedName,
+              originalName: fraction.Navn,
+              capabilityName: capabilityName
+            });
+          }
+        }
+      }
+    }
+
+    return { earliestDate, fractions: fractionsOnEarliestDate };
+  }
+
   getWastePickupDate(wasteType) {
     if (!this.wasteData || !this.fractions) {
       return null;
@@ -487,17 +564,8 @@ module.exports = class MyDevice extends Homey.Device {
         // Get fraction names for all pickups
         const fractionNames = tomorrowPickups.map(pickup => pickup.fractionName);
         
-        // Format the names with proper Norwegian grammar
-        let tokenValue;
-        if (fractionNames.length === 1) {
-          tokenValue = fractionNames[0];
-        } else if (fractionNames.length === 2) {
-          tokenValue = `${fractionNames[0]} og ${fractionNames[1]}`;
-        } else {
-          // More than 2: use commas and "og" before the last one
-          const lastItem = fractionNames.pop();
-          tokenValue = `${fractionNames.join(', ')} og ${lastItem}`;
-        }
+        // Format the names with proper grammar using locales
+        const tokenValue = this.formatFractionNamesList([...fractionNames]);
         
         await this.wasteTypeToken.setValue(tokenValue);
         // this.log(`Updated wasteType token to: ${tokenValue}`);
@@ -590,106 +658,42 @@ module.exports = class MyDevice extends Homey.Device {
     return pickups;
   }
 
-  async updateNextPickupDays(settings, earliestDate = null, earliestFractionId = null) {
-    // If no earliest date provided, calculate it from wasteData
-    if (!earliestDate && this.wasteData && this.fractions) {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0); // Reset time to start of day
-      
-      for (const fractionId of Object.keys(this.wasteData)) {
-        const date = this.wasteData[fractionId];
-        
-        // Skip dates that are in the past
-        if (date < today) {
-          continue;
-        }
-        
-        // Check if this fraction has a corresponding enabled capability
-        const fraction = this.fractions.find(f => f.Id == fractionId);
-        if (fraction) {
-          const capabilityName = this.getCapabilityNameForFraction(fraction.Navn);
-          if (capabilityName && settings[capabilityName] === false) {
-            continue; // Skip this fraction if its capability is disabled
-          }
-        }
-        
-        if (!earliestDate || date < earliestDate) {
-          earliestDate = date;
-        }
-      }
-    }
-
-    if (earliestDate) {
-      // Calculate days until pickup
-      const today = new Date();
-      today.setHours(0, 0, 0, 0); // Reset time to start of day
-      const timeDiff = earliestDate.getTime() - today.getTime();
-      const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
-      
-      // Find all fractions that have pickup on the earliest date
-      
-      const fractionsOnEarliestDate = [];
-      for (const fractionId of Object.keys(this.wasteData)) {
-        const date = this.wasteData[fractionId];
-        
-        // Skip dates that are in the past
-        if (date < today) {
-          continue;
-        }
-        
-        // Check if this date matches the earliest date
-        if (date.getTime() === earliestDate.getTime()) {
-          // Check if this fraction has a corresponding enabled capability
-          const fraction = this.fractions.find(f => f.Id == fractionId);
-          if (fraction) {
-            const capabilityName = this.getCapabilityNameForFraction(fraction.Navn);
-            if (capabilityName && settings[capabilityName] !== false) {
-              const standardizedName = this.getStandardizedFractionName(fraction.Navn);
-              fractionsOnEarliestDate.push(standardizedName);
-            }
-          }
-        }
-      }
-      
-      // Check if we found any valid fractions
-      if (fractionsOnEarliestDate.length === 0) {
-        // No valid fractions found - remove the capability
-        if (this.hasCapability('next_pickup_days')) {
-          await this.removeCapability('next_pickup_days');
-        }
-        return;
-      }
-
-      // Format the fraction names with proper Norwegian grammar
-      let fractionNames;
-      if (fractionsOnEarliestDate.length === 1) {
-        fractionNames = fractionsOnEarliestDate[0];
-      } else if (fractionsOnEarliestDate.length === 2) {
-        fractionNames = `${fractionsOnEarliestDate[0]} og ${fractionsOnEarliestDate[1]}`;
-      } else {
-        // More than 2: use commas and "og" before the last one
-        const lastItem = fractionsOnEarliestDate.pop();
-        fractionNames = `${fractionsOnEarliestDate.join(', ')} og ${lastItem}`;
-      }
-      
-      const daysText = daysDiff === 1 ? this.homey.__('device.pickup.day_to') : this.homey.__('device.pickup.days_to');
-      const nextPickupText = `${daysDiff} ${daysText} ${fractionNames}`;
-      
-      // Always remove and re-add to ensure it appears last
-      if (this.hasCapability('next_pickup_days')) {
-        await this.removeCapability('next_pickup_days');
-      }
-      await this.addCapability('next_pickup_days');
-      await this.setCapabilityValue('next_pickup_days', nextPickupText);
-      
-      // this.log(`Updated next pickup: ${nextPickupText}`);
-    } else {
+  async updateNextPickupDays(settings, earliestDate = null) {
+    // Use the helper function to get fractions on earliest date
+    const result = this.getFractionsOnEarliestDate(settings);
+    
+    if (!result.earliestDate || result.fractions.length === 0) {
       // No enabled waste types have pickup dates, remove the capability
       if (this.hasCapability('next_pickup_days')) {
         await this.removeCapability('next_pickup_days');
         // this.log('Removed next_pickup_days - no enabled waste types');
       }
+      return;
     }
+
+    // Calculate days until pickup
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to start of day
+    const timeDiff = result.earliestDate.getTime() - today.getTime();
+    const daysDiff = Math.ceil(timeDiff / (1000 * 3600 * 24));
+    
+    // Extract fraction names for display
+    const fractionNames = result.fractions.map(f => f.name);
+    
+    // Format the fraction names with proper grammar using locales
+    const formattedFractionNames = this.formatFractionNamesList([...fractionNames]);
+    
+    const daysText = daysDiff === 1 ? this.homey.__('device.pickup.day_to') : this.homey.__('device.pickup.days_to');
+    const nextPickupText = `${daysDiff} ${daysText} ${formattedFractionNames}`;
+    
+    // Always remove and re-add to ensure it appears last
+    if (this.hasCapability('next_pickup_days')) {
+      await this.removeCapability('next_pickup_days');
+    }
+    await this.addCapability('next_pickup_days');
+    await this.setCapabilityValue('next_pickup_days', nextPickupText);
+    
+    // this.log(`Updated next pickup: ${nextPickupText}`);
   }
 
 };

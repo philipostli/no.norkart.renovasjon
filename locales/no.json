@@ -31,6 +31,9 @@
       "days_to": "dager til",
       "day_to": "dag til"
     },
+    "grammar": {
+      "and": " og "
+    },
     "waste_type_tomorrow": "Avfallstype hentes i morgen"
   }
 }

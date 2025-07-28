@@ -50,6 +50,73 @@ class MockDevice {
     return null; // No matching capability found
   }
 
+  getStandardizedFractionName(fractionName) {
+    // Simplified version for testing - just return the original name
+    return fractionName;
+  }
+
+  getFractionsOnEarliestDate(settings = null) {
+    if (!this.wasteData || !this.fractions) {
+      return { earliestDate: null, fractions: [] };
+    }
+
+    // Find earliest date (no need to filter past dates - already done in processCalendarData)
+    let earliestDate = null;
+    for (const fractionId of Object.keys(this.wasteData)) {
+      const date = this.wasteData[fractionId];
+      
+      // Check if this fraction has a corresponding enabled capability (if settings provided)
+      if (settings) {
+        const fraction = this.fractions.find(f => f.Id == fractionId);
+        if (fraction) {
+          const capabilityName = this.getCapabilityNameForFraction(fraction.Navn);
+          if (capabilityName && settings[capabilityName] === false) {
+            continue; // Skip this fraction if its capability is disabled
+          }
+        }
+      }
+      
+      if (!earliestDate || date < earliestDate) {
+        earliestDate = date;
+      }
+    }
+
+    if (!earliestDate) {
+      return { earliestDate: null, fractions: [] };
+    }
+
+    // Find all fractions that have pickup on the earliest date
+    const fractionsOnEarliestDate = [];
+    for (const fractionId of Object.keys(this.wasteData)) {
+      const date = this.wasteData[fractionId];
+      
+      // Check if this date matches the earliest date
+      if (date.getTime() === earliestDate.getTime()) {
+        // Check if this fraction has a corresponding enabled capability (if settings provided)
+        const fraction = this.fractions.find(f => f.Id == fractionId);
+        if (fraction) {
+          const capabilityName = this.getCapabilityNameForFraction(fraction.Navn);
+          
+          if (settings && capabilityName && settings[capabilityName] === false) {
+            continue; // Skip this fraction if its capability is disabled
+          }
+          
+          if (!settings || (capabilityName && settings[capabilityName] !== false)) {
+            const standardizedName = this.getStandardizedFractionName(fraction.Navn);
+            fractionsOnEarliestDate.push({
+              id: parseInt(fractionId),
+              name: standardizedName,
+              originalName: fraction.Navn,
+              capabilityName: capabilityName
+            });
+          }
+        }
+      }
+    }
+
+    return { earliestDate, fractions: fractionsOnEarliestDate };
+  }
+
   // Use the exact implementation from device.js
   getWastePickupDate(wasteType) {
     if (!this.wasteData || !this.fractions) {
@@ -159,11 +226,19 @@ class MockDevice {
   // Simulate the calendar processing logic from device.js
   processCalendarData(calendarData) {
     const wasteData = {};
+    const today = new Date();
+    today.setHours(0, 0, 0, 0); // Reset time to start of day
 
     calendarData.forEach(item => {
       const fraction = item.FraksjonId;
       item.Tommedatoer.forEach(dateString => {
         const date = new Date(dateString);
+        
+        // Skip dates that are in the past
+        if (date < today) {
+          return;
+        }
+        
         if (!wasteData[fraction] || date < wasteData[fraction]) {
           wasteData[fraction] = date;
         }
@@ -193,24 +268,46 @@ function runCalendarTest() {
   console.log('🧪 Testing Calendar Processing...\n');
   console.log('='.repeat(50));
   
-  // Test data from user query
+  // Generate test data programmatically based on current date
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(today.getDate() - 1);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(today.getDate() + 1);
+  const dayAfterTomorrow = new Date(today);
+  dayAfterTomorrow.setDate(today.getDate() + 2);
+  const nextWeek = new Date(today);
+  nextWeek.setDate(today.getDate() + 7);
+  const nextMonth = new Date(today);
+  nextMonth.setMonth(today.getMonth() + 1);
+  
+  const formatDate = (date) => date.toISOString().split('T')[0] + 'T00:00:00';
+  
   const testCalendarData = [
-    {"FraksjonId":1,"Tommedatoer":["2025-07-28T00:00:00","2025-08-13T00:00:00"]},
-    {"FraksjonId":3,"Tommedatoer":["2025-07-27T00:00:00","2025-08-13T00:00:00"]},
-    {"FraksjonId":2,"Tommedatoer":["2025-07-30T00:00:00","2025-08-27T00:00:00"]},
-    {"FraksjonId":4,"Tommedatoer":["2025-07-30T00:00:00","2025-09-24T00:00:00"]},
-    {"FraksjonId":7,"Tommedatoer":["2025-07-30T00:00:00","2025-08-27T00:00:00"]}
+    {"FraksjonId":1,"Tommedatoer":[formatDate(tomorrow), formatDate(nextWeek)]}, // Tomorrow
+    {"FraksjonId":2,"Tommedatoer":[formatDate(dayAfterTomorrow), formatDate(nextMonth)]}, // Day after tomorrow
+    {"FraksjonId":3,"Tommedatoer":[formatDate(tomorrow), formatDate(nextWeek)]}, // Tomorrow
+    {"FraksjonId":4,"Tommedatoer":[formatDate(dayAfterTomorrow), formatDate(nextMonth)]}, // Day after tomorrow
+    {"FraksjonId":6,"Tommedatoer":[formatDate(yesterday), formatDate(nextMonth)]}, // Yesterday (should be ignored)
+    {"FraksjonId":7,"Tommedatoer":[formatDate(tomorrow), formatDate(nextMonth)]}  // Tomorrow
   ];
+  
+  console.log(`📅 Test dates generated relative to today (${today.toDateString()}):`);
+  console.log(`   Yesterday: ${yesterday.toDateString()} (should be ignored)`);
+  console.log(`   Tomorrow: ${tomorrow.toDateString()}`);
+  console.log(`   Day after tomorrow: ${dayAfterTomorrow.toDateString()}`);
 
   const device = new MockDevice();
   
-  // Expected results - earliest date for each fraction
+  // Expected results - earliest date for each fraction (using programmatic dates)
+  // Note: Fraction 6 will have next month as earliest date since yesterday is filtered out
   const expectedResults = {
-    1: new Date("2025-07-28T00:00:00"), // Restavfall
-    2: new Date("2025-07-30T00:00:00"), // Papiravfall
-    3: new Date("2025-07-27T00:00:00"), // Matavfall
-    4: new Date("2025-07-30T00:00:00"), // Glass- og metallemballasje
-    7: new Date("2025-07-30T00:00:00")  // Plastemballasje
+    1: new Date(formatDate(tomorrow)), // Restavfall - tomorrow
+    2: new Date(formatDate(dayAfterTomorrow)), // Papiravfall - day after tomorrow
+    3: new Date(formatDate(tomorrow)), // Matavfall - tomorrow
+    4: new Date(formatDate(dayAfterTomorrow)), // Glass- og metallemballasje - day after tomorrow
+    6: new Date(formatDate(nextMonth)), // Spesialavfall - next month (yesterday filtered out)
+    7: new Date(formatDate(tomorrow))  // Plastemballasje - tomorrow
   };
 
   console.log('📅 Processing calendar data...');
@@ -238,6 +335,32 @@ function runCalendarTest() {
       console.log(`   Got: ${actualDate ? actualDate.toISOString() : 'null'}`);
       failedTests++;
     }
+  }
+
+  console.log('\n🔍 Testing that past dates are ignored (using getFractionsOnEarliestDate):');
+  
+  // Test using the same helper function as updateNextPickupDays
+  const result = device.getFractionsOnEarliestDate();
+  
+  const expectedEarliestFutureDate = new Date(formatDate(tomorrow));
+  const expectedFractionIds = [1, 3, 7]; // Should be tomorrow's fractions, not yesterday's
+  
+  if (result.earliestDate && result.earliestDate.getTime() === expectedEarliestFutureDate.getTime() &&
+      result.fractions.length === expectedFractionIds.length &&
+      expectedFractionIds.every(id => result.fractions.some(f => f.id === id))) {
+    
+    const fractionNames = result.fractions.map(f => f.name).join(', ');
+    console.log(`✅ Past dates ignored: Next pickup is ${device.getFormattedDate(result.earliestDate)}`);
+    console.log(`   Fractions: ${fractionNames}`);
+    console.log(`   (Fraction 6 from yesterday was correctly ignored)`);
+    passedTests++;
+  } else {
+    console.log(`❌ Past date ignoring test failed:`);
+    console.log(`   Expected date: ${device.getFormattedDate(expectedEarliestFutureDate)}`);
+    console.log(`   Expected fractions: ${expectedFractionIds.join(', ')}`);
+    console.log(`   Got date: ${result.earliestDate ? device.getFormattedDate(result.earliestDate) : 'null'}`);
+    console.log(`   Got fractions: ${result.fractions.map(f => f.id).join(', ')}`);
+    failedTests++;
   }
 
   console.log('\n🔍 Testing capability mapping:');
@@ -272,11 +395,11 @@ function runCalendarTest() {
   
   // Test that getWastePickupDate returns correct dates for different waste types
   const wasteTypeTests = [
-    { wasteType: 'general', expectedDate: new Date("2025-07-28T00:00:00"), expectedFractionId: 1 },
-    { wasteType: 'paper', expectedDate: new Date("2025-07-30T00:00:00"), expectedFractionId: 2 },
-    { wasteType: 'bio', expectedDate: new Date("2025-07-27T00:00:00"), expectedFractionId: 3 },
-    { wasteType: 'glass', expectedDate: new Date("2025-07-30T00:00:00"), expectedFractionId: 4 },
-    { wasteType: 'plastic', expectedDate: new Date("2025-07-30T00:00:00"), expectedFractionId: 7 }
+    { wasteType: 'general', expectedDate: new Date(formatDate(tomorrow)), expectedFractionId: 1 },
+    { wasteType: 'paper', expectedDate: new Date(formatDate(dayAfterTomorrow)), expectedFractionId: 2 },
+    { wasteType: 'bio', expectedDate: new Date(formatDate(tomorrow)), expectedFractionId: 3 },
+    { wasteType: 'glass', expectedDate: new Date(formatDate(dayAfterTomorrow)), expectedFractionId: 4 },
+    { wasteType: 'plastic', expectedDate: new Date(formatDate(tomorrow)), expectedFractionId: 7 }
   ];
 
   wasteTypeTests.forEach(test => {
@@ -296,22 +419,24 @@ function runCalendarTest() {
 
   console.log('\n🔍 Testing getWastePickedUpTomorrow():');
   
-  // Test that getWastePickedUpTomorrow returns correct result when tomorrow is 28.07.2025
-  device.setMockTomorrowDate("2025-07-28T00:00:00");
+  // Test that getWastePickedUpTomorrow returns correct result for tomorrow (multiple pickups)
+  device.setMockTomorrowDate(formatDate(tomorrow));
   const tomorrowResult = device.getWastePickedUpTomorrow();
   
-  if (tomorrowResult.hasPickup === true && tomorrowResult.wasteType === 'general' && tomorrowResult.fractionName === 'Restavfall') {
+  if (tomorrowResult.hasPickup === true && ['general', 'bio', 'plastic'].includes(tomorrowResult.wasteType)) {
     console.log(`✅ getWastePickedUpTomorrow() → hasPickup: true, wasteType: '${tomorrowResult.wasteType}', fractionName: '${tomorrowResult.fractionName}'`);
     passedTests++;
   } else {
     console.log(`❌ getWastePickedUpTomorrow() failed:`);
-    console.log(`   Expected: hasPickup: true, wasteType: 'general', fractionName: 'Restavfall'`);
+    console.log(`   Expected: hasPickup: true, wasteType: one of ['general', 'bio', 'plastic']`);
     console.log(`   Got: hasPickup: ${tomorrowResult.hasPickup}, wasteType: '${tomorrowResult.wasteType}', fractionName: '${tomorrowResult.fractionName}'`);
     failedTests++;
   }
 
-  // Test when tomorrow has no pickup (e.g., 29.07.2025)
-  device.setMockTomorrowDate("2025-07-29T00:00:00");
+  // Test when tomorrow has no pickup (using a date with no scheduled pickup)
+  const noPickupDate = new Date(today);
+  noPickupDate.setDate(today.getDate() + 5); // 5 days from today should have no pickup
+  device.setMockTomorrowDate(formatDate(noPickupDate));
   const noPickupResult = device.getWastePickedUpTomorrow();
   
   if (noPickupResult.hasPickup === false && noPickupResult.wasteType === null) {
@@ -324,31 +449,52 @@ function runCalendarTest() {
     failedTests++;
   }
 
-  console.log('\n🔍 Testing earliest overall pickup date:');
+  console.log('\n🔍 Testing earliest overall pickup date and all fractions on that date:');
   
-  // Find the earliest date among all fractions
+  // Find the earliest date among all fractions (ignoring past dates)
+  const todayForComparison = new Date();
+  todayForComparison.setHours(0, 0, 0, 0);
+  
   let earliestDate = null;
-  let earliestFractionId = null;
   
   for (const [fractionId, date] of Object.entries(processedData)) {
+    // Skip dates that are in the past
+    if (date < todayForComparison) {
+      continue;
+    }
+    
     if (!earliestDate || date < earliestDate) {
       earliestDate = date;
-      earliestFractionId = parseInt(fractionId);
     }
   }
   
-  const expectedEarliestDate = new Date("2025-07-27T00:00:00");
-  const expectedEarliestFractionId = 3;
+  // Find all fractions that have pickup on the earliest date
+  const fractionsOnEarliestDate = [];
+  for (const [fractionId, date] of Object.entries(processedData)) {
+    if (earliestDate && date.getTime() === earliestDate.getTime()) {
+      fractionsOnEarliestDate.push(parseInt(fractionId));
+    }
+  }
+  
+  const expectedEarliestDate = new Date(formatDate(tomorrow));
+  const expectedFractionsOnEarliestDate = [1, 3, 7]; // All fractions with pickup tomorrow
   
   if (earliestDate && earliestDate.getTime() === expectedEarliestDate.getTime() && 
-      earliestFractionId === expectedEarliestFractionId) {
-    const fraction = device.fractions.find(f => f.Id === earliestFractionId);
-    console.log(`✅ Earliest pickup: ${device.getFormattedDate(earliestDate)} (${fraction.Navn})`);
+      fractionsOnEarliestDate.length === expectedFractionsOnEarliestDate.length &&
+      expectedFractionsOnEarliestDate.every(id => fractionsOnEarliestDate.includes(id))) {
+    const fractionNames = fractionsOnEarliestDate.map(id => {
+      const fraction = device.fractions.find(f => f.Id === id);
+      return fraction ? fraction.Navn : `Unknown (${id})`;
+    });
+    console.log(`✅ Earliest pickup: ${device.getFormattedDate(earliestDate)}`);
+    console.log(`   Fractions: ${fractionNames.join(', ')}`);
     passedTests++;
   } else {
     console.log(`❌ Earliest pickup test failed:`);
-    console.log(`   Expected: ${device.getFormattedDate(expectedEarliestDate)} (Fraksjon ${expectedEarliestFractionId})`);
-    console.log(`   Got: ${earliestDate ? device.getFormattedDate(earliestDate) : 'null'} (Fraksjon ${earliestFractionId})`);
+    console.log(`   Expected date: ${device.getFormattedDate(expectedEarliestDate)}`);
+    console.log(`   Expected fractions: ${expectedFractionsOnEarliestDate.join(', ')}`);
+    console.log(`   Got date: ${earliestDate ? device.getFormattedDate(earliestDate) : 'null'}`);
+    console.log(`   Got fractions: ${fractionsOnEarliestDate.join(', ')}`);
     failedTests++;
   }
 

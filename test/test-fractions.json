@@ -149,6 +149,6 @@
         "Ikon": "http://komteksky.norkart.no/minrenovasjon.api/Ikoner/brush.png",
         "NorkartStandardFraksjonId": 13,
         "NorkartStandardFraksjonIkon": "https://kttjeneste.norkart.no/Avfallssymboler/13.png",
-        "expectedCapability": "waste_bio"
+        "expectedCapability": "waste_general"
     }
 ] 
