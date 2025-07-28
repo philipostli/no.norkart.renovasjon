@@ -77,6 +77,51 @@ For production deployment, set the environment variables in the Homey Developer 
    - `API_BASE_URL`
    - `GEONORGE_URL`
 
+## Publishing the App
+
+The app uses a two-step publishing process due to the need for local environment variables:
+
+### Step 1: Update Version via GitHub Action
+
+1. Go to the GitHub repository's Actions tab
+2. Run the "Update Homey App Version" action
+3. This will:
+   - Increment the version number in `app.json`
+   - Create a new commit and tag
+   - Prepare the app for publishing
+
+### Step 2: Local Publishing
+
+Since the `env.json` file contains sensitive API keys and is not included in the repository, the final publishing step must be done locally:
+
+```bash
+# Ensure you have the latest changes
+git pull origin main
+
+# Make sure you have your env.json file with the required API keys
+# (This file should already exist from your development setup)
+
+# Publish the app to the Homey App Store
+npm run publish
+# or
+homey app publish
+```
+
+**Important Notes:**
+- The `env.json` file is required for publishing as it contains the API keys needed for validation
+- Never commit `env.json` to the repository - it's already in `.gitignore`
+- Make sure your local environment has the same API keys as configured in the Homey Developer Portal
+- The GitHub Action handles version management, but local publishing is required for the final step
+
+### Publishing Checklist
+
+Before publishing, ensure:
+- [ ] All tests pass locally
+- [ ] The app works correctly with real API data (not test data)
+- [ ] Version has been updated via GitHub Action
+- [ ] `env.json` exists locally with correct API keys
+- [ ] You have the necessary permissions in the Homey Developer Portal
+
 ## Architecture
 
 The app consists of:
