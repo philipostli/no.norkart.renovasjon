@@ -28,7 +28,8 @@
       "general": "Another error occurred:"
     },
     "pickup": {
-      "days_to": "days until"
+      "days_to": "days until",
+      "day_to": "day until"
     },
     "waste_type_tomorrow": "Wastetype picked up tomorrow"
   }

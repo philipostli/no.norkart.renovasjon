@@ -467,11 +467,11 @@ module.exports = class MyDevice extends Homey.Device {
         }
         
         await this.wasteTypeToken.setValue(tokenValue);
-        this.log(`Updated wasteType token to: ${tokenValue}`);
+        // this.log(`Updated wasteType token to: ${tokenValue}`);
       } else {
         // No pickup tomorrow, set to empty value
         await this.wasteTypeToken.setValue('');
-        this.log('Updated wasteType token to empty (no pickup tomorrow)');
+        // this.log('Updated wasteType token to empty (no pickup tomorrow)');
       }
     } catch (error) {
       this.homey.error('Failed to update wasteType token:', error);
@@ -637,7 +637,8 @@ module.exports = class MyDevice extends Homey.Device {
         fractionNames = `${fractionsOnEarliestDate.join(', ')} og ${lastItem}`;
       }
       
-      const nextPickupText = `${daysDiff} ${this.homey.__('device.pickup.days_to')} ${fractionNames}`;
+      const daysText = daysDiff === 1 ? this.homey.__('device.pickup.day_to') : this.homey.__('device.pickup.days_to');
+      const nextPickupText = `${daysDiff} ${daysText} ${fractionNames}`;
       
       // Always remove and re-add to ensure it appears last
       if (this.hasCapability('next_pickup_days')) {

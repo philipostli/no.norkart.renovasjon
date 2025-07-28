@@ -28,7 +28,8 @@
       "general": "En annen feil har oppstått:"
     },
     "pickup": {
-      "days_to": "dager til"
+      "days_to": "dager til",
+      "day_to": "dag til"
     },
     "waste_type_tomorrow": "Avfallstype hentes i morgen"
   }
