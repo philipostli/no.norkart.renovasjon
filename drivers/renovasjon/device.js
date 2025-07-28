@@ -278,6 +278,10 @@ module.exports = class MyDevice extends Homey.Device {
         
         // Check if user wants to show this capability
         if (settings[capabilityName] === false) {
+          // Remove capability if it exists but user has disabled it
+          if (this.hasCapability(capabilityName)) {
+            await this.removeCapability(capabilityName);
+          }
           continue; // Skip adding/updating this capability if user has disabled it
         }
         
