@@ -1,0 +1,21 @@
+{
+  "name": {
+    "en": "Trash Pickup Calendar",
+    "no": "Tømmekalender"
+  },
+  "settings": [],
+  "api": {
+    "getWasteData": {
+      "method": "GET",
+      "path": "/waste-data"
+    }
+  },
+  "devices": {
+    "type": "app",
+    "singular": true,
+    "filter": {
+      "class": "other",
+      "capabilities": "next_pickup_days"
+    }
+  }
+}

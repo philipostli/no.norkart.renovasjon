@@ -53,11 +53,21 @@
     },
     "pickup": {
       "days_to": "dager til",
-      "day_to": "dag til"
+      "day_to": "dag til",
+      "today": "I dag",
+      "tomorrow": "I morgen"
     },
     "grammar": {
       "and": " og "
     },
     "waste_type_tomorrow": "Avfallstype hentes i morgen"
+  },
+  "widget": {
+    "loading": "Laster tømmekalender...",
+    "error_loading": "Kunne ikke laste tømmekalender",
+    "no_data": "Ingen tømmeopplysninger tilgjengelig",
+    "no_waste_types": "Ingen avfallstyper tilgjengelig",
+    "next_pickup": "Neste henting",
+    "not_available": "Ikke tilgjengelig"
   }
 }

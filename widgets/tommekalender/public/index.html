@@ -1,0 +1,150 @@
+<html>
+  <head>
+    <link rel="stylesheet" href="style.css">
+  </head>
+
+  <body class="homey-widget">
+    <div class="bg-figure"></div>
+    <div id="widget-content" class="no-data">
+      <script type="text/javascript">
+        // This will be replaced by the actual translation when Homey is ready
+        document.write('Laster tømmekalender...');
+      </script>
+    </div>
+
+    <script type="text/javascript">
+      function onHomeyReady(Homey) {
+        // Update loading text with translation
+        document.getElementById('widget-content').innerHTML = 
+          `<div class="no-data">${Homey.__('widget.loading')}</div>`;
+        
+        loadWasteData(Homey);
+        
+        // Refresh data every 5 minutes
+        setInterval(() => loadWasteData(Homey), 5 * 60 * 1000);
+        
+        Homey.ready();
+      }
+
+      async function loadWasteData(Homey) {
+        try {
+          const $selectedDeviceId = Homey.getDeviceIds()[0];
+          const response = await Homey.api('GET', `/waste-data?deviceId=${$selectedDeviceId}`);
+          displayWasteData(response, Homey);
+        } catch (error) {
+          console.error('Error loading waste data:', error);
+          document.getElementById('widget-content').innerHTML = 
+            `<div class="no-data">${Homey.__('widget.error_loading')}</div>`;
+        }
+      }
+
+      function setWidgetHeight(wasteCapabilitiesCount) {
+        // Base height for the widget
+        const baseHeight = 90; // Minimum height
+        const itemHeight = 40; // Height per waste item
+        const padding = 4; // Extra padding
+        
+        // Calculate dynamic height based on number of waste capabilities
+        const calculatedHeight = baseHeight + (wasteCapabilitiesCount * itemHeight) + padding;
+        
+        // Set minimum and maximum bounds
+        const minHeight = 90;
+        const maxHeight = 400;
+        const finalHeight = Math.max(minHeight, Math.min(calculatedHeight, maxHeight));
+        
+        // Set the widget height
+        if (typeof Homey !== 'undefined') {
+          Homey.setHeight(finalHeight);
+        }
+      }
+
+      function displayWasteData(devices, Homey) {
+        const container = document.getElementById('widget-content');
+        
+        if (!devices || devices.length === 0) {
+          container.innerHTML = `<div class="no-data">${Homey.__('widget.no_data')}</div>`;
+          setWidgetHeight(0);
+          return;
+        }
+
+        // For now, show the first device. In the future, could support multiple devices
+        const device = devices[0];
+        
+        // Set widget height based on number of waste capabilities
+        const wasteCount = device.wasteCapabilities ? device.wasteCapabilities.length : 0;
+        setWidgetHeight(wasteCount);
+        
+        let html = '<div class="waste-container">';
+        
+        // Left side - waste list
+        html += '<div class="waste-list">';
+        
+        if (device.deviceName) {
+          html += `<div class="device-name">${device.deviceName}</div>`;
+        }
+        
+        if (device.wasteCapabilities && device.wasteCapabilities.length > 0) {
+          device.wasteCapabilities.forEach(waste => {
+            html += '<div class="waste-item">';
+            
+            if (waste.icon) {
+              html += `<img src="${waste.icon}" alt="${waste.title}" class="waste-icon">`;
+            }
+            
+            html += '<div class="waste-info">';
+            html += `<div class="waste-title">${waste.title}</div>`;
+            html += `<div class="waste-date">${waste.value}</div>`;
+            html += '</div>';
+            html += '</div>';
+          });
+        } else {
+          html += `<div class="no-data">${Homey.__('widget.no_waste_types')}</div>`;
+        }
+        
+        html += '</div>';
+        
+        // Right side - next pickup
+        html += '<div class="next-pickup';
+        
+        // Add appropriate CSS classes based on urgency
+        if (device.nextPickupInfo) {
+          if (device.nextPickupInfo.isToday) {
+            html += ' today';
+          } else if (device.nextPickupInfo.isTomorrow) {
+            html += ' tomorrow';
+          }
+        }
+        
+        html += '">';
+        html += `<div class="next-pickup-title">${Homey.__('widget.next_pickup')}</div>`;
+        
+        if (device.nextPickupInfo) {
+          html += `<div class="next-pickup-value">${device.nextPickupInfo.displayText}</div>`;
+          if (device.nextPickupInfo.wasteTypes) {
+            html += `<div class="next-pickup-waste-types">${device.nextPickupInfo.wasteTypes}</div>`;
+          }
+          
+          // Add waste type icons
+          if (device.nextPickupInfo.matchingWasteCapabilities && device.nextPickupInfo.matchingWasteCapabilities.length > 0) {
+            html += '<div class="next-pickup-waste-icons">';
+            device.nextPickupInfo.matchingWasteCapabilities.forEach(waste => {
+              if (waste.icon) {
+                html += `<img src="${waste.icon}" alt="${waste.title}" class="next-pickup-waste-icon">`;
+              }
+            });
+            html += '</div>';
+          }
+        } else if (device.nextPickupDays) {
+          html += `<div class="next-pickup-value">${device.nextPickupDays}</div>`;
+        } else {
+          html += `<div class="next-pickup-value">${Homey.__('widget.not_available')}</div>`;
+        }
+        
+        html += '</div>';
+        html += '</div>';
+        
+        container.innerHTML = html;
+      }
+    </script>
+  </body>
+</html>

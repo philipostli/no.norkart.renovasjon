@@ -53,11 +53,21 @@
     },
     "pickup": {
       "days_to": "days until",
-      "day_to": "day until"
+      "day_to": "day until",
+      "today": "Today",
+      "tomorrow": "Tomorrow"
     },
     "grammar": {
       "and": " and "
     },
     "waste_type_tomorrow": "Wastetype picked up tomorrow"
+  },
+  "widget": {
+    "loading": "Loading waste calendar...",
+    "error_loading": "Could not load waste calendar",
+    "no_data": "No waste information available",
+    "no_waste_types": "No waste types available",
+    "next_pickup": "Next pickup",
+    "not_available": "Not available"
   }
 }

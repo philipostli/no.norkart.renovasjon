@@ -10,22 +10,31 @@ module.exports = class MyDevice extends Homey.Device {
    * onInit is called when the device is initialized.
    */
   async onInit() {
-    this.log('MinRenovasjon has been initialized');
-    
+    this.log('MinRenovasjon has been inited');
+
+    this.wasteTokens = {};
+
+    // Try to unregister existing wasteType token first
+    const wasteTypeTokenId = `wasteType_${this.getData().id}`;
+    try {
+      const existingWasteTypeToken = this.homey.flow.getToken(wasteTypeTokenId);
+      if (existingWasteTypeToken) {
+        await existingWasteTypeToken.unregister();
+      }
+    } catch (error) {}
+
     // Create device-specific wasteType token
-    this.wasteTypeToken = await this.homey.flow.createToken(`wasteType_${this.getData().id}`, {
+    this.wasteTypeToken = await this.homey.flow.createToken(wasteTypeTokenId, {
       type: "string",
       title: `${this.homey.__('device.waste_type_tomorrow')} - ${this.getName()}`
     });
 
-    // Create individual waste type tokens for tomorrow's pickup (yes/no)
-    this.wasteTokens = {};
     const wasteTypes = [
-      { key: 'general', name: 'Restavfall' },
       { key: 'paper', name: 'Papir' },
-      { key: 'glass', name: 'Glass' },
       { key: 'plastic', name: 'Plast' },
-      { key: 'bio', name: 'Matavfall' },
+      { key: 'general', name: 'Restavfall' },
+      { key: 'bio', name: 'Bioavfall' },
+      { key: 'glass', name: 'Glass' },
       { key: 'garden', name: 'Hageavfall' },
       { key: 'clothes', name: 'Tekstil' },
       { key: 'electrical', name: 'Elektrisk' },
@@ -33,14 +42,22 @@ module.exports = class MyDevice extends Homey.Device {
     ];
 
     for (const wasteType of wasteTypes) {
-      this.wasteTokens[wasteType.key] = await this.homey.flow.createToken(`waste${wasteType.key.charAt(0).toUpperCase() + wasteType.key.slice(1)}Tomorrow_${this.getData().id}`, {
+      const tokenId = `waste${wasteType.key.charAt(0).toUpperCase() + wasteType.key.slice(1)}Tomorrow_${this.getData().id}`;
+      
+      try {
+        const existingToken = this.homey.flow.getToken(tokenId);
+        if (existingToken) {
+          await existingToken.unregister();
+        }
+      } catch (error) {}
+      
+      this.wasteTokens[wasteType.key] = await this.homey.flow.createToken(tokenId, {
         type: "boolean",
         title: `${wasteType.name} i morgen - ${this.getName()}`
       });
     }
 
     const settings = await this.getSettings();
-    // this.log(this.getSettings());
     await this.updateFractions(settings.countyId, settings.streetName, settings.addressCode, settings.houseNumber);
     await this.processMinRenovasjonResponse(settings.countyId, settings.streetName, settings.addressCode, settings.houseNumber);
     
@@ -68,23 +85,17 @@ module.exports = class MyDevice extends Homey.Device {
    * @returns {Promise<string|void>} return a custom message that will be displayed
    */
   async onSettings({ oldSettings, newSettings, changedKeys }) {
-    // this.log('MinRenovasjon settings were changed');
-    // this.log('Changed keys:', changedKeys);
     
-    // Check if any waste display settings were changed
     const wasteSettingsChanged = changedKeys.some(key => key.startsWith('waste_'));
     
     if (wasteSettingsChanged) {
-      // this.log('Waste display settings changed - updating capabilities and next_pickup_days');
-      
-      // Handle capability changes based on settings
+  
       for (const key of changedKeys) {
         if (key.startsWith('waste_')) {
           if (newSettings[key] === false) {
             // Remove capability if disabled
             if (this.hasCapability(key)) {
               await this.removeCapability(key);
-              // this.log(`Removed capability: ${key}`);
             }
           } else if (newSettings[key] === true) {
             // Add capability back if enabled and we have data for it
@@ -98,7 +109,6 @@ module.exports = class MyDevice extends Homey.Device {
               if (fraction && this.wasteData[fraction.Id]) {
                 if (!this.hasCapability(key)) {
                   await this.addCapability(key);
-                  // this.log(`Added capability: ${key}`);
                 }
                 
                 // Set the capability value
@@ -109,7 +119,6 @@ module.exports = class MyDevice extends Homey.Device {
                   month: 'short' 
                 });
                 await this.setCapabilityValue(key, dateString);
-                // this.log(`Set ${key} to: ${dateString}`);
               }
             }
           }
@@ -150,9 +159,7 @@ module.exports = class MyDevice extends Homey.Device {
     if (this.wasteTypeToken) {
       try {
         await this.wasteTypeToken.unregister();
-        this.log('WasteType token unregistered');
       } catch (error) {
-        this.homey.error('Failed to unregister wasteType token:', error);
       }
     }
 
@@ -161,9 +168,7 @@ module.exports = class MyDevice extends Homey.Device {
       for (const [wasteType, token] of Object.entries(this.wasteTokens)) {
         try {
           await token.unregister();
-          this.log(`${wasteType} token unregistered`);
         } catch (error) {
-          this.homey.error(`Failed to unregister ${wasteType} token:`, error);
         }
       }
     }
@@ -203,11 +208,11 @@ module.exports = class MyDevice extends Homey.Device {
     try {
       // Testdata: Use test calendar data instead of API call
       // const data = [
-      //   {"FraksjonId":1,"Tommedatoer":["2025-07-28T00:00:00","2025-08-13T00:00:00"]},
-      //   {"FraksjonId":3,"Tommedatoer":["2025-07-27T00:00:00","2025-08-13T00:00:00"]},
-      //   {"FraksjonId":2,"Tommedatoer":["2025-07-30T00:00:00","2025-08-27T00:00:00"]},
-      //   {"FraksjonId":4,"Tommedatoer":["2025-07-28T00:00:00","2025-09-24T00:00:00"]},
-      //   {"FraksjonId":7,"Tommedatoer":["2025-07-28T00:00:00","2025-08-27T00:00:00"]}
+      //   {"FraksjonId":1,"Tommedatoer":["2025-07-29T00:00:00","2025-08-13T00:00:00"]},
+      //   {"FraksjonId":3,"Tommedatoer":["2025-07-29T00:00:00","2025-08-13T00:00:00"]},
+      //   {"FraksjonId":2,"Tommedatoer":["2025-07-29T00:00:00","2025-08-27T00:00:00"]},
+      //   {"FraksjonId":4,"Tommedatoer":["2025-07-29T00:00:00","2025-09-24T00:00:00"]},
+      //   {"FraksjonId":7,"Tommedatoer":["2025-07-29T00:00:00","2025-08-27T00:00:00"]}
       // ];
       
       const addressData = {

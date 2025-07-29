@@ -1,0 +1,294 @@
+/* Waste pickup calendar widget styles */
+
+.homey-widget {
+  font-family: var(--homey-font-family);
+  color: rgb(3 78 49);
+  background-color: #ddf3eb;
+  padding: var(--homey-su-2);
+  height: 100%;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Background figures */
+.homey-widget::before {
+  content: '';
+  position: absolute;
+  top: -50px;
+  right: -30px;
+  width: 120px;
+  height: 120px;
+  background: linear-gradient(135deg, #27ae60, #229954);
+  border-radius: 50%;
+  opacity: 0.3;
+  z-index: 0;
+}
+
+.homey-widget::after {
+  content: '';
+  position: absolute;
+  bottom: -40px;
+  left: -20px;
+  width: 80px;
+  height: 80px;
+  background: linear-gradient(135deg, #f39c12, #e67e22);
+  border-radius: 30% 70% 70% 30% / 30% 30% 70% 70%;
+  opacity: 0.4;
+  z-index: 0;
+}
+
+/* Additional background figure */
+.homey-widget .bg-figure {
+  position: absolute;
+  top: 50%;
+  right: 10px;
+  width: 60px;
+  height: 60px;
+  background: linear-gradient(135deg, #3498db, #2980b9);
+  border-radius: 20% 80% 80% 20% / 20% 20% 80% 80%;
+  opacity: 0.3;
+  z-index: 0;
+}
+
+.waste-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: var(--homey-su-2);
+  height: 100%;
+  box-sizing: border-box;
+  position: relative;
+  z-index: 1;
+}
+
+.waste-list {
+  flex: 1;
+  margin-right: var(--homey-su-3);
+}
+
+.waste-item {
+  display: flex;
+  align-items: center;
+  margin-bottom: var(--homey-su-1);
+  padding: var(--homey-su-1);
+  background-color: var(--homey-color-background-secondary);
+  border-radius: var(--homey-border-radius);
+}
+
+.waste-icon {
+  width: 24px;
+  height: 24px;
+  margin-right: var(--homey-su-2);
+  opacity: 0.8;
+}
+
+.waste-info {
+  flex: 1;
+}
+
+.waste-title {
+  font-size: var(--homey-font-size-small);
+  font-weight: var(--homey-font-weight-medium);
+  color: var(--homey-color-text-primary);
+  margin: 0;
+}
+
+.waste-date {
+  font-size: var(--homey-font-size-tiny);
+  color: var(--homey-color-text-secondary);
+  margin: 0;
+}
+
+.next-pickup {
+  flex-shrink: 0;
+  text-align: right;
+  max-width: 140px;
+  padding: var(--homey-su-2);
+  background-color: var(--homey-color-background-secondary);
+  border-radius: var(--homey-border-radius);
+  border: 2px solid #333;
+  transition: all 0.3s ease;
+}
+
+.next-pickup.today {
+  border-color: var(--homey-color-danger);
+  box-shadow: 0 0 8px rgba(220, 53, 69, 0.2);
+}
+
+.next-pickup.tomorrow {
+  border-color: var(--homey-color-warning);
+  box-shadow: 0 0 8px rgba(255, 193, 7, 0.2);
+}
+
+.next-pickup-title {
+  font-size: var(--homey-font-size-tiny);
+  color: var(--homey-color-text-secondary);
+  margin: 0 0 var(--homey-su-1) 0;
+  text-transform: uppercase;
+  font-weight: var(--homey-font-weight-medium);
+}
+
+.next-pickup-value {
+  font-size: var(--homey-font-size-small);
+  color: var(--homey-color-text-primary);
+  font-weight: var(--homey-font-weight-medium);
+  margin: 0;
+  line-height: 1.2;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--homey-su-1);
+}
+
+/* Pulsing indicator next to the value */
+.next-pickup.today .next-pickup-value::after,
+.next-pickup.tomorrow .next-pickup-value::after {
+  content: '';
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  animation: pulse 2s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.next-pickup.today .next-pickup-value::after {
+  background-color: var(--homey-color-danger);
+}
+
+.next-pickup.tomorrow .next-pickup-value::after {
+  background-color: var(--homey-color-warning);
+}
+
+@keyframes pulse {
+  0% {
+    transform: scale(1);
+    opacity: 1;
+  }
+  50% {
+    transform: scale(1.5);
+    opacity: 0.7;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Highlight text for urgent pickups */
+.next-pickup.today .next-pickup-value {
+  color: var(--homey-color-danger);
+  font-weight: var(--homey-font-weight-bold);
+}
+
+.next-pickup.tomorrow .next-pickup-value {
+  color: var(--homey-color-warning);
+  font-weight: var(--homey-font-weight-bold);
+}
+
+.next-pickup-waste-types {
+  font-size: var(--homey-font-size-micro);
+  color: var(--homey-color-text-secondary);
+  margin-top: var(--homey-su-half);
+  line-height: 1.1;
+}
+
+.next-pickup-waste-icons {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-top: var(--homey-su-1);
+  gap: var(--homey-su-half);
+}
+
+.next-pickup-waste-icon {
+  width: 16px;
+  height: 16px;
+  opacity: 0.8;
+  filter: brightness(0.8);
+}
+
+.next-pickup.today .next-pickup-waste-icon,
+.next-pickup.tomorrow .next-pickup-waste-icon {
+  filter: brightness(1.2);
+  opacity: 0.9;
+}
+
+.no-data {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--homey-color-text-secondary);
+  font-size: var(--homey-font-size-small);
+}
+
+.device-name {
+  font-size: var(--homey-font-size-tiny);
+  color: var(--homey-color-text-secondary);
+  margin-bottom: var(--homey-su-2);
+  text-transform: uppercase;
+  font-weight: var(--homey-font-weight-medium);
+}
+
+/* Responsive adjustments for smaller widgets */
+@media (max-height: 150px) {
+  .waste-item {
+    margin-bottom: var(--homey-su-1);
+    padding: var(--homey-su-half);
+  }
+  
+  .waste-icon {
+    width: 20px;
+    height: 20px;
+  }
+  
+  .waste-title {
+    font-size: var(--homey-font-size-tiny);
+  }
+  
+  .waste-date {
+    font-size: var(--homey-font-size-micro);
+  }
+  
+  .next-pickup {
+    padding: var(--homey-su-1);
+    max-width: 120px;
+  }
+  
+  .next-pickup-value {
+    font-size: var(--homey-font-size-tiny);
+  }
+  
+  .next-pickup-waste-types {
+    font-size: var(--homey-font-size-micro);
+  }
+  
+  .next-pickup-waste-icons {
+    margin-top: var(--homey-su-half);
+    gap: var(--homey-su-quarter);
+  }
+  
+  .next-pickup-waste-icon {
+    width: 14px;
+    height: 14px;
+  }
+  
+  /* Smaller indicator for small widgets */
+  .next-pickup.today .next-pickup-value::after,
+  .next-pickup.tomorrow .next-pickup-value::after {
+    width: 6px;
+    height: 6px;
+  }
+}
+
+/* Dark mode adjustments */
+@media (prefers-color-scheme: dark) {
+  .waste-item {
+    background-color: var(--homey-color-background-tertiary);
+  }
+  
+  .next-pickup {
+    background-color: var(--homey-color-background-tertiary);
+  }
+}
