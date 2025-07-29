@@ -16,5 +16,8 @@
   },
   "0.3.0": {
     "en": "Lagt til sjekk på om kommunen bruker MinRenovasjon"
+  },
+  "0.3.1": {
+    "en": "Lagt til dashboard widget"
   }
 }
