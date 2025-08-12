@@ -19,5 +19,8 @@
   },
   "0.3.1": {
     "en": "Lagt til dashboard widget"
+  },
+  "0.4.0": {
+    "en": "Widget - Sorter avfall på dato. Ny innstilling for å fjerne bakgrunn."
   }
 }
