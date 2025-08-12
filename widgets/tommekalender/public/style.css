@@ -52,8 +52,8 @@
 }
 
 .waste-container {
-  display: flex;
-  justify-content: space-between;
+  display: grid;
+  grid-template-columns: 1fr 1fr; /* two equal columns filling full width */
   align-items: flex-start;
   padding: var(--homey-su-2);
   height: 100%;
@@ -63,8 +63,10 @@
 }
 
 .waste-list {
-  flex: 1;
-  margin-right: var(--homey-su-3);
+  margin-right: 0; /* grid handles spacing */
+  margin-left: var(--homey-su-2);
+  justify-self: center; /* center the block within left half */
+  width: 100%; /* shrink to content width so centering is visible */
 }
 
 .waste-item {
@@ -103,6 +105,8 @@
 .next-pickup {
   flex-shrink: 0;
   text-align: right;
+  justify-self: center; /* center the block within right half */
+  width: auto; /* shrink to content width so centering is visible */
   max-width: 140px;
   padding: var(--homey-su-2);
   background-color: var(--homey-color-background-secondary);
@@ -189,7 +193,7 @@
 .next-pickup-waste-types {
   font-size: var(--homey-font-size-micro);
   color: var(--homey-color-text-secondary);
-  margin-top: var(--homey-su-half);
+  margin-top: var(--homey-su-1);
   line-height: 1.1;
 }
 
@@ -205,13 +209,6 @@
   width: 16px;
   height: 16px;
   opacity: 0.8;
-  filter: brightness(0.8);
-}
-
-.next-pickup.today .next-pickup-waste-icon,
-.next-pickup.tomorrow .next-pickup-waste-icon {
-  filter: brightness(1.2);
-  opacity: 0.9;
 }
 
 .no-data {
