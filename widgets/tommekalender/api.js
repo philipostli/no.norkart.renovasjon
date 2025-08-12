@@ -44,6 +44,13 @@ module.exports = {
           }
         }
 
+        // Sort waste capabilities by date
+        wasteCapabilities.sort((a, b) => {
+          const dateA = new Date(a.value);
+          const dateB = new Date(b.value);
+          return dateA - dateB;
+        });
+
         if (wasteCapabilities.length > 0 || nextPickupDays) {
           if (nextPickupDays) {
             nextPickupInfo = parseNextPickupText(nextPickupDays, homey);
