@@ -3,7 +3,21 @@
     "en": "Trash Pickup Calendar",
     "no": "Tømmekalender"
   },
-  "settings": [],
+  "settings": [
+    {
+      "id": "bg",
+      "type": "checkbox",
+      "title": {
+        "en" : "Plain background",
+        "no" : "Fjern bakgrunn"
+      },
+      "value": "false",
+      "hint": {
+        "en" : "If enabled, the widget will have a plain background.",
+        "no" : "Hvis aktivert, vil widgeten ha en gjennomsiktig bakgrunn."
+      }
+    }
+  ],
   "api": {
     "getWasteData": {
       "method": "GET",

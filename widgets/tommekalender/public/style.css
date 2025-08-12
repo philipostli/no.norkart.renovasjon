@@ -1,5 +1,16 @@
 /* Waste pickup calendar widget styles */
 
+.homey-widget-dark {
+  font-family: var(--homey-font-family);
+  /* color: rgb(3 78 49); */
+  /* background-color: #ddf3eb; */
+  padding: var(--homey-su-2);
+  height: 100%;
+  box-sizing: border-box;
+  position: relative;
+  overflow: hidden;
+}
+
 .homey-widget {
   font-family: var(--homey-font-family);
   color: rgb(3 78 49);
@@ -123,6 +134,11 @@
 .next-pickup.tomorrow {
   border-color: var(--homey-color-warning);
   box-shadow: 0 0 8px rgba(255, 193, 7, 0.2);
+}
+
+/* Dark class override: use secondary text color only when not today/tomorrow */
+.homey-widget-dark .next-pickup:not(.today):not(.tomorrow) {
+  border-color: var(--homey-color-text-secondary);
 }
 
 .next-pickup-title {

@@ -17,6 +17,12 @@
         // Update loading text with translation
         document.getElementById('widget-content').innerHTML = 
           `<div class="no-data">${Homey.__('widget.loading')}</div>`;
+
+        // Toggle dark class based on checkbox value (boolean or string)
+        const settings = Homey.getSettings ? Homey.getSettings() : {};
+        const plainBgEnabled = settings && (settings.bg === true || settings.bg === 'true');
+        document.body.classList.toggle('homey-widget-dark', plainBgEnabled);
+        document.body.classList.toggle('homey-widget', !plainBgEnabled);
         
         loadWasteData(Homey);
         
