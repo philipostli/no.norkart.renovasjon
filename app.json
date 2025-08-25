@@ -1,7 +1,7 @@
 {
   "_comment": "This file is generated. Please edit .homeycompose/app.json instead.",
   "id": "no.norkart.renovasjon",
-  "version": "0.4.0",
+  "version": "1.0.0",
   "compatibility": ">=12.3.0",
   "sdk": 3,
   "platforms": [
@@ -363,6 +363,44 @@
       "id": "renovasjon"
     }
   ],
+  "widgets": {
+    "tommekalender": {
+      "name": {
+        "en": "Trash Pickup Calendar",
+        "no": "Tømmekalender"
+      },
+      "settings": [
+        {
+          "id": "bg",
+          "type": "checkbox",
+          "title": {
+            "en": "Plain background",
+            "no": "Fjern bakgrunn"
+          },
+          "value": "false",
+          "hint": {
+            "en": "If enabled, the widget will have a plain background.",
+            "no": "Hvis aktivert, vil widgeten ha en gjennomsiktig bakgrunn."
+          }
+        }
+      ],
+      "api": {
+        "getWasteData": {
+          "method": "GET",
+          "path": "/waste-data"
+        }
+      },
+      "devices": {
+        "type": "app",
+        "singular": true,
+        "filter": {
+          "class": "other",
+          "capabilities": "next_pickup_days"
+        }
+      },
+      "id": "tommekalender"
+    }
+  },
   "capabilities": {
     "next_pickup_days": {
       "type": "string",
