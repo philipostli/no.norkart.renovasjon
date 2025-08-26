@@ -13,8 +13,8 @@
     "en": "Min Renovasjon"
   },
   "description": {
-    "no": "Appen gir oversikt over når avfallet hentes på din adresse",
-    "en": "The app gives an overview of when the waste is collected at your address"
+    "no": "Få varsling når avfallet hentes hos deg",
+    "en": "Get notified when your waste is collected"
   },
   "category": [
     "tools"
