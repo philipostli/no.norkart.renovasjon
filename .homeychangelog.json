@@ -29,5 +29,8 @@
   "1.0.1": {
     "no": "Ny funksjon",
     "en": "New feature"
+  },
+  "1.1.0": {
+    "sv": "Bara svenska"
   }
 }
