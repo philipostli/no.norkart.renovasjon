@@ -11,9 +11,13 @@ on:
           - major
           - minor
           - patch
-      changelog:
+      changelog_en:
         type: string
         description: Changelog in English
+        required: true
+      changelog_no:
+        type: string
+        description: Changelog in Norwegian
         required: true
 
 # Needed in order to push the commit and create a release
@@ -32,7 +36,8 @@ jobs:
         id: update_app_version
         with:
             version: ${{ inputs.version }}
-            changelog_no: ${{ inputs.changelog }}
+            changelog_no: ${{ inputs.changelog_no }}
+            changelog_en: ${{ inputs.changelog_en }}
 
       - name: Commit & Push
         run: |
