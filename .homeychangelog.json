@@ -25,5 +25,9 @@
   },
   "1.0.0": {
     "en": "Publisert v1"
+  },
+  "1.0.1": {
+    "no": "Ny funksjon",
+    "en": "New feature"
   }
 }
