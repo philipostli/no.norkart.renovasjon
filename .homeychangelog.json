@@ -38,5 +38,9 @@
   },
   "2.2.1": {
     "no": "Test only english again using small package"
+  },
+  "3.0.0": {
+    "en": "New feature",
+    "no": "Ny funksjon"
   }
 }
