@@ -1,0 +1,58 @@
+name: Update Homey App Version with Multi-language Changelog
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        type: choice
+        description: Version
+        required: true
+        default: patch
+        options:
+          - major
+          - minor
+          - patch
+      changelog_no:
+        type: string
+        description: Changelog in Norwegian
+        required: false
+      changelog_en:
+        type: string
+        description: Changelog in English
+        required: false
+      changelog_sv:
+        type: string
+        description: Changelog in Swedish
+        required: false
+
+# Needed in order to push the commit and create a release
+permissions:
+  contents: write
+
+jobs:
+  main:
+    name: Update Homey App Version
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Update Homey App Version
+        uses: philipostli/github-action-homey-app-version@changelog-multiple-language
+        id: update_app_version
+        with:
+            version: ${{ inputs.version }}
+            changelog_no: ${{ inputs.changelog_no }}
+            changelog_en: ${{ inputs.changelog_en }}
+            changelog_sv: ${{ inputs.changelog_sv }}
+
+      - name: Commit & Push
+        run: |
+          git config --local user.name "github-actions[bot]"
+          git config --local user.email "41898282+github-actions[bot]@users.noreply.github.com"
+
+          git add -A
+          git commit -m "Update Homey App Version to v${{ steps.update_app_version.outputs.version }}"
+
+          git push origin HEAD --tags
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GH_TOKEN: ${{ github.token }}
