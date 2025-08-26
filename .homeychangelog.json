@@ -32,5 +32,8 @@
   },
   "1.1.0": {
     "sv": "Bara svenska"
+  },
+  "2.2.0": {
+    "no": "Test only english once more"
   }
 }
