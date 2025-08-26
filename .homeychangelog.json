@@ -35,5 +35,8 @@
   },
   "2.2.0": {
     "no": "Test only english once more"
+  },
+  "2.2.1": {
+    "no": "Test only english again using small package"
   }
 }
