@@ -32,9 +32,7 @@ jobs:
         id: update_app_version
         with:
             version: ${{ inputs.version }}
-            changelog_no: ${{ inputs.changelog_no }}
-            changelog_en: ${{ inputs.changelog_en }}
-            changelog_sv: ${{ inputs.changelog_sv }}
+            changelog_no: ${{ inputs.changelog }}
 
       - name: Commit & Push
         run: |
