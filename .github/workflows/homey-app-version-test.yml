@@ -11,18 +11,10 @@ on:
           - major
           - minor
           - patch
-      changelog_no:
-        type: string
-        description: Changelog in Norwegian
-        required: false
-      changelog_en:
+      changelog:
         type: string
         description: Changelog in English
-        required: false
-      changelog_sv:
-        type: string
-        description: Changelog in Swedish
-        required: false
+        required: true
 
 # Needed in order to push the commit and create a release
 permissions:
