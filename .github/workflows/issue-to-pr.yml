@@ -44,7 +44,9 @@ jobs:
             // Read project structure to understand codebase
             const projectStructure = await getProjectStructure();
             
-            const prompt = `Du er en erfaren utvikler som skal lage et løsningsforslag for følgende GitHub issue:
+            const prompt = `Du er en erfaren utvikler som skal lage et løsningsforslag for følgende GitHub issue.
+
+          VIKTIG: Bruk Context7 for å få oppdatert dokumentasjon og beste praksis for alle teknologier som nevnes i issue-en.
 
           ISSUE #${issueNumber}: ${issueTitle}
 
@@ -54,21 +56,25 @@ jobs:
           PROSJEKTSTRUKTUR:
           ${projectStructure}
 
-          Basert på issue-beskrivelsen og prosjektstrukturen, generer en detaljert løsning som inkluderer:
-
-          1. En kort analyse av problemet
-          2. Foreslåtte kodeendringer med filnavn og komplett kode
-          3. Eventuelle nye filer som må opprettes
-          4. Tester hvis relevant
-          5. Dokumentasjonsoppdateringer hvis nødvendig
+          INSTRUKSJONER:
+          1. Analyser issue-en grundig og identifiser alle teknologier/biblioteker som er involvert
+          2. Bruk Context7 for å få oppdatert dokumentasjon og eksempler for disse teknologiene
+          3. Generer en detaljert løsning som inkluderer:
+             - En kort analyse av problemet
+             - Foreslåtte kodeendringer med filnavn og komplett kode
+             - Eventuelle nye filer som må opprettes
+             - Tester hvis relevant
+             - Dokumentasjonsoppdateringer hvis nødvendig
+          4. Sørg for at løsningen følger 2025 beste praksis og bruker oppdaterte API-er
 
           Svar på norsk, men skriv kode og kommentarer på engelsk.
+          Format svaret som markdown med tydelige seksjoner og kodeblokker.
           
-          Format svaret som markdown med tydelige seksjoner og kodeblokker.`;
+          Husk: Dette er 2025, så bruk de nyeste versjonene og beste praksisene.`;
 
             try {
               const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
-                model: 'llama-3.1-70b-versatile', // Groq's free tier model
+                model: 'llama-3.3-70b-versatile', // Groq's latest production model (2025)
                 messages: [
                   {
                     role: 'user',

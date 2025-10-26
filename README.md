@@ -34,8 +34,8 @@ This repository includes an automated GitHub Action that generates solution prop
 
 ### How it works
 
-1. **Issue Creation**: When you create a new issue, the workflow automatically triggers
-2. **AI Analysis**: The system uses Groq's free LLM API (Llama 3.1 70B) to analyze the issue and project structure
+1. **Issue Creation/Update**: When you create or edit an issue, the workflow automatically triggers
+2. **AI Analysis**: The system uses Groq's free LLM API (Llama 3.3 70B) with Context7 integration to analyze the issue and project structure using up-to-date documentation
 3. **Solution Generation**: An AI-generated solution proposal is created with code suggestions and implementation details
 4. **Pull Request**: A draft pull request is automatically created with the proposed solution
 
@@ -53,6 +53,7 @@ To enable this feature, you need to configure a Groq API key:
 - Always test and validate AI-generated code before merging
 - The feature is completely free using Groq's generous free tier
 - Solutions are generated in Norwegian with English code comments
+- Uses Context7 for up-to-date documentation and 2025 best practices
 
 ## Development Setup
 

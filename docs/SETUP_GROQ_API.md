@@ -26,16 +26,18 @@ Groq provides free access to powerful LLM models like Llama 3.1 70B through thei
 
 ## Step 3: Test the Workflow
 
-1. Create a new issue in your repository
+1. Create a new issue in your repository, or edit an existing one
 2. The workflow should automatically trigger
 3. Check the **Actions** tab to see the workflow progress
 4. A draft pull request should be created with the AI-generated solution
+
+**Note**: The workflow triggers on both issue creation (`opened`) and issue updates (`edited`).
 
 ## Groq Free Tier Limits
 
 - **Rate Limits**: 30 requests per minute
 - **Daily Limits**: Generous free tier (check current limits on Groq's website)
-- **Models Available**: Llama 3.1 70B, Mixtral 8x7B, and others
+- **Models Available**: Llama 3.3 70B, Llama 3.1 8B, OpenAI GPT-OSS models, and others (2025)
 
 ## Troubleshooting
 
@@ -60,10 +62,11 @@ Groq provides free access to powerful LLM models like Llama 3.1 70B through thei
 ## Customization
 
 You can modify the workflow to:
-- Use different Groq models (change the `model` parameter)
+- Use different Groq models (change the `model` parameter - see available models: `llama-3.3-70b-versatile`, `llama-3.1-8b-instant`, `openai/gpt-oss-120b`, etc.)
 - Adjust the solution length (`max_tokens`)
 - Modify the prompt for different types of responses
 - Add additional context about your project
+- The workflow automatically uses Context7 for up-to-date documentation and 2025 best practices
 
 ## Support
 
