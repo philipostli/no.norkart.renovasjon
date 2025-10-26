@@ -1,0 +1,15 @@
+// app.json
+{
+  "id": "com.example.app",
+  "version": "1.0.0",
+  "name": "Min Renovasjon",
+  "description": "Min Renovasjon App",
+  "icons": {
+    "small": "assets/images/small.png",
+    "large": "assets/images/large.png",
+    "xlarge": "assets/images/xlarge.png"
+  },
+  "capabilities": [
+    // ...
+  ]
+}

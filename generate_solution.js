@@ -1,0 +1,147 @@
+const axios = require('axios');
+const fs = require('fs');
+const path = require('path');
+
+async function generateSolution() {
+  const issueTitle = process.env.ISSUE_TITLE;
+  const issueBody = process.env.ISSUE_BODY;
+  const issueNumber = process.env.ISSUE_NUMBER;
+  const repoName = process.env.GITHUB_REPOSITORY;
+  
+  // Read project structure to understand codebase
+  const projectStructure = await getProjectStructure();
+  
+  const prompt = `Du er en erfaren utvikler som skal lage et løsningsforslag for følgende GitHub issue.
+
+VIKTIG: Bruk Context7 for å få oppdatert dokumentasjon og beste praksis for alle teknologier som nevnes i issue-en.
+
+ISSUE #${issueNumber}: ${issueTitle}
+
+BESKRIVELSE:
+${issueBody}
+
+PROSJEKTSTRUKTUR:
+${projectStructure}
+
+INSTRUKSJONER:
+1. Analyser issue-en grundig og identifiser alle teknologier/biblioteker som er involvert
+2. Bruk Context7 for å få oppdatert dokumentasjon og eksempler for disse teknologiene
+3. Generer en detaljert løsning som inkluderer:
+   - En kort analyse av problemet
+   - Foreslåtte kodeendringer med filnavn og komplett kode
+   - Eventuelle nye filer som må opprettes
+   - Tester hvis relevant
+   - Dokumentasjonsoppdateringer hvis nødvendig
+4. Sørg for at løsningen følger 2025 beste praksis og bruker oppdaterte API-er
+
+Svar på norsk, men skriv kode og kommentarer på engelsk.
+Format svaret som markdown med tydelige seksjoner og kodeblokker.
+
+Husk: Dette er 2025, så bruk de nyeste versjonene og beste praksisene.`;
+
+  try {
+    const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
+      model: 'llama-3.3-70b-versatile', // Groq's latest production model (2025)
+      messages: [
+        {
+          role: 'user',
+          content: prompt
+        }
+      ],
+      max_tokens: 4000,
+      temperature: 0.7
+    }, {
+      headers: {
+        'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    const solution = response.data.choices[0].message.content;
+    
+    // Save solution to file
+    fs.writeFileSync('solution.md', solution);
+    
+    // Extract potential code changes and create files
+    await extractAndCreateFiles(solution, issueNumber);
+    
+    console.log('Solution generated successfully');
+    return solution;
+    
+  } catch (error) {
+    console.error('Error generating solution:', error.response?.data || error.message);
+    process.exit(1);
+  }
+}
+
+async function getProjectStructure() {
+  const ignorePaths = ['node_modules', '.git', '.github/workflows'];
+  
+  function readDirRecursive(dir, maxDepth = 3, currentDepth = 0) {
+    if (currentDepth >= maxDepth) return '';
+    
+    let structure = '';
+    try {
+      const items = fs.readdirSync(dir);
+      for (const item of items) {
+        if (ignorePaths.some(ignore => item.includes(ignore))) continue;
+        
+        const fullPath = path.join(dir, item);
+        const stats = fs.statSync(fullPath);
+        const indent = '  '.repeat(currentDepth);
+        
+        if (stats.isDirectory()) {
+          structure += `${indent}${item}/\n`;
+          structure += readDirRecursive(fullPath, maxDepth, currentDepth + 1);
+        } else {
+          structure += `${indent}${item}\n`;
+        }
+      }
+    } catch (error) {
+      // Ignore errors for inaccessible directories
+    }
+    return structure;
+  }
+  
+  return readDirRecursive('.', 3);
+}
+
+async function extractAndCreateFiles(solution, issueNumber) {
+  // Simple extraction of code blocks - could be enhanced
+  const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
+  let match;
+  let fileIndex = 0;
+  
+  while ((match = codeBlockRegex.exec(solution)) !== null) {
+    const language = match[1] || 'txt';
+    const code = match[2];
+    
+    // Skip if it's just markdown or documentation
+    if (['markdown', 'md', 'text'].includes(language.toLowerCase())) continue;
+    
+    // Create a sample file - in a real implementation, you'd parse the solution
+    // to determine actual file names and paths
+    const fileName = `proposed_solution_${issueNumber}_${fileIndex}.${getFileExtension(language)}`;
+    fs.writeFileSync(fileName, code);
+    fileIndex++;
+  }
+}
+
+function getFileExtension(language) {
+  const extensions = {
+    'javascript': 'js',
+    'typescript': 'ts',
+    'python': 'py',
+    'java': 'java',
+    'cpp': 'cpp',
+    'c': 'c',
+    'css': 'css',
+    'html': 'html',
+    'json': 'json',
+    'yaml': 'yml',
+    'yml': 'yml'
+  };
+  return extensions[language.toLowerCase()] || 'txt';
+}
+
+generateSolution();
