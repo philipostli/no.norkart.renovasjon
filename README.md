@@ -28,6 +28,32 @@ The app supports the following waste fractions:
 - Your municipality must use the MinRenovasjon system
 - Valid API key for the MinRenovasjon service
 
+## Automated Issue Resolution
+
+This repository includes an automated GitHub Action that generates solution proposals for new issues using AI.
+
+### How it works
+
+1. **Issue Creation**: When you create a new issue, the workflow automatically triggers
+2. **AI Analysis**: The system uses Groq's free LLM API (Llama 3.1 70B) to analyze the issue and project structure
+3. **Solution Generation**: An AI-generated solution proposal is created with code suggestions and implementation details
+4. **Pull Request**: A draft pull request is automatically created with the proposed solution
+
+### Setup
+
+To enable this feature, you need to configure a Groq API key:
+
+1. Get a free API key from [Groq Console](https://console.groq.com/)
+2. Add it as a repository secret named `GROQ_API_KEY`
+3. See [Setup Guide](docs/SETUP_GROQ_API.md) for detailed instructions
+
+### Important Notes
+
+- Generated solutions are **draft pull requests** that require human review
+- Always test and validate AI-generated code before merging
+- The feature is completely free using Groq's generous free tier
+- Solutions are generated in Norwegian with English code comments
+
 ## Development Setup
 
 ### Environment Variables

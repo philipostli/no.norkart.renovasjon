@@ -1,0 +1,221 @@
+name: Auto-generate PR from Issue
+
+on:
+  issues:
+    types: [opened, edited]
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: read
+
+jobs:
+  generate-solution:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+
+      - name: Install dependencies
+        run: |
+          npm install axios
+
+      - name: Generate solution with Groq LLM
+        id: generate
+        run: |
+          cat << 'EOF' > generate_solution.js
+          const axios = require('axios');
+          const fs = require('fs');
+          const path = require('path');
+
+          async function generateSolution() {
+            const issueTitle = process.env.ISSUE_TITLE;
+            const issueBody = process.env.ISSUE_BODY;
+            const issueNumber = process.env.ISSUE_NUMBER;
+            const repoName = process.env.GITHUB_REPOSITORY;
+            
+            // Read project structure to understand codebase
+            const projectStructure = await getProjectStructure();
+            
+            const prompt = `Du er en erfaren utvikler som skal lage et løsningsforslag for følgende GitHub issue:
+
+          ISSUE #${issueNumber}: ${issueTitle}
+
+          BESKRIVELSE:
+          ${issueBody}
+
+          PROSJEKTSTRUKTUR:
+          ${projectStructure}
+
+          Basert på issue-beskrivelsen og prosjektstrukturen, generer en detaljert løsning som inkluderer:
+
+          1. En kort analyse av problemet
+          2. Foreslåtte kodeendringer med filnavn og komplett kode
+          3. Eventuelle nye filer som må opprettes
+          4. Tester hvis relevant
+          5. Dokumentasjonsoppdateringer hvis nødvendig
+
+          Svar på norsk, men skriv kode og kommentarer på engelsk.
+          
+          Format svaret som markdown med tydelige seksjoner og kodeblokker.`;
+
+            try {
+              const response = await axios.post('https://api.groq.com/openai/v1/chat/completions', {
+                model: 'llama-3.1-70b-versatile', // Groq's free tier model
+                messages: [
+                  {
+                    role: 'user',
+                    content: prompt
+                  }
+                ],
+                max_tokens: 4000,
+                temperature: 0.7
+              }, {
+                headers: {
+                  'Authorization': `Bearer ${process.env.GROQ_API_KEY}`,
+                  'Content-Type': 'application/json'
+                }
+              });
+
+              const solution = response.data.choices[0].message.content;
+              
+              // Save solution to file
+              fs.writeFileSync('solution.md', solution);
+              
+              // Extract potential code changes and create files
+              await extractAndCreateFiles(solution, issueNumber);
+              
+              console.log('Solution generated successfully');
+              return solution;
+              
+            } catch (error) {
+              console.error('Error generating solution:', error.response?.data || error.message);
+              process.exit(1);
+            }
+          }
+
+          async function getProjectStructure() {
+            const ignorePaths = ['node_modules', '.git', '.github/workflows'];
+            
+            function readDirRecursive(dir, maxDepth = 3, currentDepth = 0) {
+              if (currentDepth >= maxDepth) return '';
+              
+              let structure = '';
+              try {
+                const items = fs.readdirSync(dir);
+                for (const item of items) {
+                  if (ignorePaths.some(ignore => item.includes(ignore))) continue;
+                  
+                  const fullPath = path.join(dir, item);
+                  const stats = fs.statSync(fullPath);
+                  const indent = '  '.repeat(currentDepth);
+                  
+                  if (stats.isDirectory()) {
+                    structure += `${indent}${item}/\n`;
+                    structure += readDirRecursive(fullPath, maxDepth, currentDepth + 1);
+                  } else {
+                    structure += `${indent}${item}\n`;
+                  }
+                }
+              } catch (error) {
+                // Ignore errors for inaccessible directories
+              }
+              return structure;
+            }
+            
+            return readDirRecursive('.', 3);
+          }
+
+          async function extractAndCreateFiles(solution, issueNumber) {
+            // Simple extraction of code blocks - could be enhanced
+            const codeBlockRegex = /```(\w+)?\n([\s\S]*?)```/g;
+            let match;
+            let fileIndex = 0;
+            
+            while ((match = codeBlockRegex.exec(solution)) !== null) {
+              const language = match[1] || 'txt';
+              const code = match[2];
+              
+              // Skip if it's just markdown or documentation
+              if (['markdown', 'md', 'text'].includes(language.toLowerCase())) continue;
+              
+              // Create a sample file - in a real implementation, you'd parse the solution
+              // to determine actual file names and paths
+              const fileName = `proposed_solution_${issueNumber}_${fileIndex}.${getFileExtension(language)}`;
+              fs.writeFileSync(fileName, code);
+              fileIndex++;
+            }
+          }
+
+          function getFileExtension(language) {
+            const extensions = {
+              'javascript': 'js',
+              'typescript': 'ts',
+              'python': 'py',
+              'java': 'java',
+              'cpp': 'cpp',
+              'c': 'c',
+              'css': 'css',
+              'html': 'html',
+              'json': 'json',
+              'yaml': 'yml',
+              'yml': 'yml'
+            };
+            return extensions[language.toLowerCase()] || 'txt';
+          }
+
+          generateSolution();
+          EOF
+
+          node generate_solution.js
+        env:
+          GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+          ISSUE_TITLE: ${{ github.event.issue.title }}
+          ISSUE_BODY: ${{ github.event.issue.body }}
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+          GITHUB_REPOSITORY: ${{ github.repository }}
+
+      - name: Create Pull Request
+        uses: peter-evans/create-pull-request@v7
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'Add solution proposal for issue #${{ github.event.issue.number }}'
+          committer: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+          author: github-actions[bot] <41898282+github-actions[bot]@users.noreply.github.com>
+          branch: solution/issue-${{ github.event.issue.number }}
+          delete-branch: true
+          title: '🤖 Løsningsforslag for issue #${{ github.event.issue.number }}: ${{ github.event.issue.title }}'
+          body: |
+            ## 🤖 Automatisk generert løsningsforslag
+            
+            Dette er et automatisk generert løsningsforslag for issue #${{ github.event.issue.number }}.
+            
+            **Original issue:** ${{ github.event.issue.title }}
+            
+            ### 📋 Løsningsdetaljer
+            
+            Se `solution.md` for detaljert analyse og løsningsforslag.
+            
+            ### ⚠️ Viktig
+            
+            Dette er et AI-generert forslag og bør gjennomgås nøye før implementering:
+            - ✅ Kontroller at koden følger prosjektets standarder
+            - ✅ Test løsningen grundig
+            - ✅ Vurder sikkerhet og ytelse
+            - ✅ Oppdater dokumentasjon hvis nødvendig
+            
+            ### 🔗 Relatert
+            
+            Løser: #${{ github.event.issue.number }}
+          labels: |
+            ai-generated
+            solution-proposal
+            needs-review
+          draft: true
