@@ -391,6 +391,12 @@ module.exports = class MyDevice extends Homey.Device {
 
     const fractionNameLower = fractionName.toLowerCase();
     
+    // Special handling: if fraction contains both 'mat' and 'rest', prioritize 'rest' (waste_general)
+    // This handles cases like "Mat-/restavfall" where we want 'waste_general', not 'waste_bio'
+    if (fractionNameLower.includes('rest') && fractionNameLower.includes('mat')) {
+      return 'waste_general';
+    }
+    
     // Find matching capability based on keywords
     for (const mapping of keywordToCapability) {
       if (mapping.keywords.some(keyword => fractionNameLower.includes(keyword.toLowerCase()))) {
@@ -531,17 +537,52 @@ module.exports = class MyDevice extends Homey.Device {
     }
 
     // Find fraction by searching for keywords in the name (case insensitive)
-    const fraction = this.fractions.find(f => {
-      const fractionName = f.Navn.toLowerCase();
-      return keywords.some(keyword => fractionName.includes(keyword.toLowerCase()));
-    });
+    // IMPORTANT: For 'general' wasteType, we need to prioritize fractions that contain both 'mat' and 'rest'
+    // over pure 'rest' fractions, because "Mat-/restavfall" should match 'general', not pure "Restavfall"
+    let fraction = null;
+    
+    if (wasteType === 'general') {
+      // First, try to find a fraction that contains both 'mat' and 'rest' (like "Mat-/restavfall")
+      // This prioritizes combined fractions over pure "Restavfall" to handle cases where
+      // the API returns "Mat-/restavfall" as a single fraction
+      fraction = this.fractions.find(f => {
+        const fractionName = f.Navn.toLowerCase();
+        return fractionName.includes('rest') && fractionName.includes('mat');
+      });
+      
+      // If no mat+rest fraction found, fall back to any fraction with 'rest'
+      if (!fraction) {
+        fraction = this.fractions.find(f => {
+          const fractionName = f.Navn.toLowerCase();
+          return fractionName.includes('rest') && !fractionName.includes('mat');
+        });
+      }
+    } else {
+      // For other waste types, use the original logic
+      fraction = this.fractions.find(f => {
+        const fractionName = f.Navn.toLowerCase();
+        
+        // Special handling: if searching for 'bio' (mat) but fraction contains both 'mat' and 'rest',
+        // skip this match to avoid matching "Mat-/restavfall" when looking for pure bio waste
+        if (wasteType === 'bio' && fractionName.includes('rest') && fractionName.includes('mat')) {
+          return false;
+        }
+        
+        return keywords.some(keyword => fractionName.includes(keyword.toLowerCase()));
+      });
+    }
 
     if (!fraction) {
       return null;
     }
 
+    // Try both string and number keys to handle type mismatches
+    const fractionIdNum = Number(fraction.Id);
+    const fractionIdStr = String(fraction.Id);
+    const pickupDate = this.wasteData[fraction.Id] || this.wasteData[fractionIdNum] || this.wasteData[fractionIdStr];
+
     // Return the Date object from wasteData
-    return this.wasteData[fraction.Id] || null;
+    return pickupDate || null;
   }
 
   getWastePickedUpTomorrow() {

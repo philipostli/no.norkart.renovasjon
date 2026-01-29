@@ -31,11 +31,6 @@ module.exports = class MyApp extends Homey.App {
           const pickupDateNormalized = new Date(pickupDate);
           pickupDateNormalized.setHours(0, 0, 0, 0); // Reset time to start of day
           
-          // this.homey.log('waste_'+args.wasteType);
-          // this.homey.log('Pickup date:', pickupDate);
-          // this.homey.log('Today:', today);
-          // this.homey.log('When:', args.when);
-          
           if (args.when == 'today') {
             return pickupDateNormalized.getTime() === today.getTime();
           } else if (args.when == 'tomorrow') {

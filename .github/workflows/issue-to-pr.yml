@@ -58,14 +58,16 @@ jobs:
 
           INSTRUKSJONER:
           1. Analyser issue-en grundig og identifiser alle teknologier/biblioteker som er involvert
-          2. Bruk Context7 for å få oppdatert dokumentasjon og eksempler for disse teknologiene
-          3. Generer en detaljert løsning som inkluderer:
-             - En kort analyse av problemet
+          2. VIKTIG: Hvis du støter på ukjente begreper eller konsepter, bruk Context7 for å forstå dem før du foreslår løsninger
+          3. Ikke gjett eller finn opp API-er, settings eller funksjoner - bruk Context7 for å finne riktige implementasjoner
+          4. Bruk Context7 for å få oppdatert dokumentasjon og eksempler for disse teknologiene
+          5. Generer en detaljert løsning som inkluderer:
+             - En kort analyse av problemet basert på faktisk dokumentasjon
              - Foreslåtte kodeendringer med filnavn og komplett kode
              - Eventuelle nye filer som må opprettes
              - Tester hvis relevant
              - Dokumentasjonsoppdateringer hvis nødvendig
-          4. Sørg for at løsningen følger 2025 beste praksis og bruker oppdaterte API-er
+          6. Sørg for at løsningen følger 2026 beste praksis og bruker oppdaterte API-er
 
           Svar på norsk, men skriv kode og kommentarer på engelsk.
           Format svaret som markdown med tydelige seksjoner og kodeblokker.

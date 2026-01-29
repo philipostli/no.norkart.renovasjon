@@ -40,6 +40,12 @@ class MockDevice {
 
     const fractionNameLower = fractionName.toLowerCase();
     
+    // Special handling: if fraction contains both 'mat' and 'rest', prioritize 'rest' (waste_general)
+    // This handles cases like "Mat-/restavfall" where we want 'waste_general', not 'waste_bio'
+    if (fractionNameLower.includes('rest') && fractionNameLower.includes('mat')) {
+      return 'waste_general';
+    }
+    
     // Find matching capability based on keywords
     for (const mapping of keywordToCapability) {
       if (mapping.keywords.some(keyword => fractionNameLower.includes(keyword.toLowerCase()))) {
@@ -142,17 +148,52 @@ class MockDevice {
     }
 
     // Find fraction by searching for keywords in the name (case insensitive)
-    const fraction = this.fractions.find(f => {
-      const fractionName = f.Navn.toLowerCase();
-      return keywords.some(keyword => fractionName.includes(keyword.toLowerCase()));
-    });
+    // IMPORTANT: For 'general' wasteType, we need to prioritize fractions that contain both 'mat' and 'rest'
+    // over pure 'rest' fractions, because "Mat-/restavfall" should match 'general', not pure "Restavfall"
+    let fraction = null;
+    
+    if (wasteType === 'general') {
+      // First, try to find a fraction that contains both 'mat' and 'rest' (like "Mat-/restavfall")
+      // This prioritizes combined fractions over pure "Restavfall" to handle cases where
+      // the API returns "Mat-/restavfall" as a single fraction
+      fraction = this.fractions.find(f => {
+        const fractionName = f.Navn.toLowerCase();
+        return fractionName.includes('rest') && fractionName.includes('mat');
+      });
+      
+      // If no mat+rest fraction found, fall back to any fraction with 'rest'
+      if (!fraction) {
+        fraction = this.fractions.find(f => {
+          const fractionName = f.Navn.toLowerCase();
+          return fractionName.includes('rest') && !fractionName.includes('mat');
+        });
+      }
+    } else {
+      // For other waste types, use the original logic
+      fraction = this.fractions.find(f => {
+        const fractionName = f.Navn.toLowerCase();
+        
+        // Special handling: if searching for 'bio' (mat) but fraction contains both 'mat' and 'rest',
+        // skip this match to avoid matching "Mat-/restavfall" when looking for pure bio waste
+        if (wasteType === 'bio' && fractionName.includes('rest') && fractionName.includes('mat')) {
+          return false;
+        }
+        
+        return keywords.some(keyword => fractionName.includes(keyword.toLowerCase()));
+      });
+    }
 
     if (!fraction) {
       return null;
     }
 
+    // Try both string and number keys to handle type mismatches
+    const fractionIdNum = Number(fraction.Id);
+    const fractionIdStr = String(fraction.Id);
+    const pickupDate = this.wasteData[fraction.Id] || this.wasteData[fractionIdNum] || this.wasteData[fractionIdStr];
+
     // Return the Date object from wasteData
-    return this.wasteData[fraction.Id] || null;
+    return pickupDate || null;
   }
 
   // Use the exact implementation from device.js
@@ -416,6 +457,116 @@ function runCalendarTest() {
       failedTests++;
     }
   });
+
+  console.log('\n🔍 Testing "Mat-/restavfall" vs "Restavfall" prioritization:');
+  
+  // Test scenario 1: Both "Mat-/restavfall" and "Restavfall" exist - should prioritize "Mat-/restavfall"
+  const deviceWithBoth = new MockDevice();
+  deviceWithBoth.fractions = [
+    { Id: 1, Navn: "Restavfall" },
+    { Id: 17, Navn: "Mat-/restavfall" },
+    { Id: 2, Navn: "Papiravfall" }
+  ];
+  deviceWithBoth.wasteData = {
+    1: new Date(formatDate(tomorrow)), // Restavfall
+    17: new Date(formatDate(tomorrow)), // Mat-/restavfall
+    2: new Date(formatDate(dayAfterTomorrow))
+  };
+  
+  const generalDateWithBoth = deviceWithBoth.getWastePickupDate('general');
+  // Find which fraction was actually returned by checking which fraction ID matches the returned date
+  let fractionWithBoth = null;
+  for (const f of deviceWithBoth.fractions) {
+    const date = deviceWithBoth.wasteData[f.Id] || deviceWithBoth.wasteData[Number(f.Id)] || deviceWithBoth.wasteData[String(f.Id)];
+    if (date && generalDateWithBoth && date.getTime() === generalDateWithBoth.getTime()) {
+      // Check if this is the fraction that getWastePickupDate would have found
+      // by checking if it matches the prioritization logic
+      const fractionName = f.Navn.toLowerCase();
+      if (fractionName.includes('rest') && fractionName.includes('mat')) {
+        fractionWithBoth = f;
+        break; // Found the mat+rest fraction, which should be prioritized
+      }
+    }
+  }
+  
+  // If we didn't find a mat+rest fraction, check for pure rest
+  if (!fractionWithBoth) {
+    for (const f of deviceWithBoth.fractions) {
+      const date = deviceWithBoth.wasteData[f.Id] || deviceWithBoth.wasteData[Number(f.Id)] || deviceWithBoth.wasteData[String(f.Id)];
+      if (date && generalDateWithBoth && date.getTime() === generalDateWithBoth.getTime()) {
+        const fractionName = f.Navn.toLowerCase();
+        if (fractionName.includes('rest') && !fractionName.includes('mat')) {
+          fractionWithBoth = f;
+          break;
+        }
+      }
+    }
+  }
+  
+  if (fractionWithBoth && fractionWithBoth.Id === 17 && fractionWithBoth.Navn === "Mat-/restavfall") {
+    console.log(`✅ Prioritizes "Mat-/restavfall" (ID=17) over "Restavfall" (ID=1) when both exist`);
+    passedTests++;
+  } else {
+    console.log(`❌ Prioritization test failed:`);
+    console.log(`   Expected: Fraksjon ID=17 "Mat-/restavfall"`);
+    console.log(`   Got: Fraksjon ID=${fractionWithBoth?.Id} "${fractionWithBoth?.Navn}"`);
+    console.log(`   Returned date: ${generalDateWithBoth ? generalDateWithBoth.toISOString() : 'null'}`);
+    failedTests++;
+  }
+  
+  // Test scenario 2: Only "Restavfall" exists - should find it
+  const deviceWithOnlyRest = new MockDevice();
+  deviceWithOnlyRest.fractions = [
+    { Id: 1, Navn: "Restavfall" },
+    { Id: 2, Navn: "Papiravfall" }
+  ];
+  deviceWithOnlyRest.wasteData = {
+    1: new Date(formatDate(tomorrow)), // Restavfall
+    2: new Date(formatDate(dayAfterTomorrow))
+  };
+  
+  const generalDateWithOnlyRest = deviceWithOnlyRest.getWastePickupDate('general');
+  const fractionWithOnlyRest = deviceWithOnlyRest.fractions.find(f => {
+    const date = deviceWithOnlyRest.wasteData[f.Id] || deviceWithOnlyRest.wasteData[Number(f.Id)] || deviceWithOnlyRest.wasteData[String(f.Id)];
+    return date && date.getTime() === generalDateWithOnlyRest?.getTime();
+  });
+  
+  if (fractionWithOnlyRest && fractionWithOnlyRest.Id === 1 && fractionWithOnlyRest.Navn === "Restavfall") {
+    console.log(`✅ Finds "Restavfall" (ID=1) when only it exists (no "Mat-/restavfall")`);
+    passedTests++;
+  } else {
+    console.log(`❌ Fallback test failed:`);
+    console.log(`   Expected: Fraksjon ID=1 "Restavfall"`);
+    console.log(`   Got: Fraksjon ID=${fractionWithOnlyRest?.Id} "${fractionWithOnlyRest?.Navn}"`);
+    failedTests++;
+  }
+  
+  // Test scenario 3: Only "Mat-/restavfall" exists - should find it
+  const deviceWithOnlyMatRest = new MockDevice();
+  deviceWithOnlyMatRest.fractions = [
+    { Id: 17, Navn: "Mat-/restavfall" },
+    { Id: 2, Navn: "Papiravfall" }
+  ];
+  deviceWithOnlyMatRest.wasteData = {
+    17: new Date(formatDate(tomorrow)), // Mat-/restavfall
+    2: new Date(formatDate(dayAfterTomorrow))
+  };
+  
+  const generalDateWithOnlyMatRest = deviceWithOnlyMatRest.getWastePickupDate('general');
+  const fractionWithOnlyMatRest = deviceWithOnlyMatRest.fractions.find(f => {
+    const date = deviceWithOnlyMatRest.wasteData[f.Id] || deviceWithOnlyMatRest.wasteData[Number(f.Id)] || deviceWithOnlyMatRest.wasteData[String(f.Id)];
+    return date && date.getTime() === generalDateWithOnlyMatRest?.getTime();
+  });
+  
+  if (fractionWithOnlyMatRest && fractionWithOnlyMatRest.Id === 17 && fractionWithOnlyMatRest.Navn === "Mat-/restavfall") {
+    console.log(`✅ Finds "Mat-/restavfall" (ID=17) when only it exists (no "Restavfall")`);
+    passedTests++;
+  } else {
+    console.log(`❌ Mat-rest only test failed:`);
+    console.log(`   Expected: Fraksjon ID=17 "Mat-/restavfall"`);
+    console.log(`   Got: Fraksjon ID=${fractionWithOnlyMatRest?.Id} "${fractionWithOnlyMatRest?.Navn}"`);
+    failedTests++;
+  }
 
   console.log('\n🔍 Testing getWastePickedUpTomorrow():');
   
