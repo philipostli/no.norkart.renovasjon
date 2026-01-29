@@ -25,5 +25,8 @@
   },
   "1.0.0": {
     "en": "Publisert v1"
+  },
+  "1.0.1": {
+    "en": "Fikset flowkort for kombinasjonsavfall i kommuner med avfallstypen Mat-/restavfall"
   }
 }
