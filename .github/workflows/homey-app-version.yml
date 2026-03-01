@@ -13,7 +13,7 @@ on:
           - patch
       changelog:
         type: string
-        description: Changelog
+        description: Changelog (NO)
         required: true
 
 # Needed in order to push the commit and create a release
