@@ -1,0 +1,12 @@
+{
+  "type": "string",
+  "title": {
+    "no": "Neste henting dato",
+    "en": "Next pickup date"
+  },
+  "getable": true,
+  "setable": true,
+  "uiComponent": null,
+  "uiQuickAction": false,
+  "icon": "/drivers/renovasjon/assets/calendar.svg"
+}

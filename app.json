@@ -402,11 +402,35 @@
     }
   },
   "capabilities": {
+    "next_pickup_date": {
+      "type": "string",
+      "title": {
+        "no": "Neste henting dato",
+        "en": "Next pickup date"
+      },
+      "getable": true,
+      "setable": true,
+      "uiComponent": null,
+      "uiQuickAction": false,
+      "icon": "/drivers/renovasjon/assets/calendar.svg"
+    },
     "next_pickup_days": {
       "type": "string",
       "title": {
         "no": "Neste henting",
         "en": "Next pickup"
+      },
+      "getable": true,
+      "setable": true,
+      "uiComponent": "sensor",
+      "uiQuickAction": false,
+      "icon": "/drivers/renovasjon/assets/calendar.svg"
+    },
+    "next_pickup_type": {
+      "type": "string",
+      "title": {
+        "no": "Neste avfallstype",
+        "en": "Next waste type"
       },
       "getable": true,
       "setable": true,

@@ -55,7 +55,8 @@
       "days_to": "dager til",
       "day_to": "dag til",
       "today": "I dag",
-      "tomorrow": "I morgen"
+      "tomorrow": "I morgen",
+      "next_prefix": "Neste "
     },
     "grammar": {
       "and": " og "

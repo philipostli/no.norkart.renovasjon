@@ -55,7 +55,8 @@
       "days_to": "days until",
       "day_to": "day until",
       "today": "Today",
-      "tomorrow": "Tomorrow"
+      "tomorrow": "Tomorrow",
+      "next_prefix": "Next "
     },
     "grammar": {
       "and": " and "

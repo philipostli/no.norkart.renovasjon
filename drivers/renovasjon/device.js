@@ -128,6 +128,8 @@ module.exports = class MyDevice extends Homey.Device {
       // Recalculate next_pickup_days based on enabled waste types
       if (this.wasteData && this.fractions) {
         await this.updateNextPickupDays(newSettings);
+        await this.updateNextPickupDate(newSettings);
+        await this.updateNextPickupType(newSettings);
         await this.updateIndividualWasteTokens();
       }
     }
@@ -302,7 +304,8 @@ module.exports = class MyDevice extends Homey.Device {
       }
         
         await this.updateNextPickupDays(settings);
-      
+        await this.updateNextPickupDate(settings);
+        await this.updateNextPickupType(settings);
 
       // const groupedWasteInfo = await this.groupSimilarWasteTypes(wasteData);
       // const nextDateByWasteType = await this.getNextDateByWasteType(groupedWasteInfo);
@@ -740,6 +743,55 @@ module.exports = class MyDevice extends Homey.Device {
     await this.setCapabilityValue('next_pickup_days', nextPickupText);
     
     // this.log(`Updated next pickup: ${nextPickupText}`);
+  }
+
+  async updateNextPickupDate(settings) {
+    const result = this.getFractionsOnEarliestDate(settings);
+
+    if (!result.earliestDate || result.fractions.length === 0) {
+      if (this.hasCapability('next_pickup_date')) {
+        await this.removeCapability('next_pickup_date');
+      }
+      return;
+    }
+
+    const dateObj = result.earliestDate instanceof Date ? result.earliestDate : new Date(result.earliestDate);
+    if (isNaN(dateObj.getTime())) {
+      this.log('updateNextPickupDate: invalid earliestDate', result.earliestDate);
+      return;
+    }
+
+    const locale = this.homey.i18n.getLanguage() === 'en' ? 'en-GB' : 'no-NO';
+    const dateString = dateObj.toLocaleDateString(locale, {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short'
+    });
+
+    if (!this.hasCapability('next_pickup_date')) {
+      await this.addCapability('next_pickup_date');
+    }
+    await this.setCapabilityValue('next_pickup_date', dateString);
+  }
+
+  async updateNextPickupType(settings) {
+    const result = this.getFractionsOnEarliestDate(settings);
+
+    if (!result.earliestDate || result.fractions.length === 0) {
+      if (this.hasCapability('next_pickup_type')) {
+        await this.removeCapability('next_pickup_type');
+      }
+      return;
+    }
+
+    const fractionNames = result.fractions.map(f => f.name);
+    const formattedFractionNames = this.formatFractionNamesList([...fractionNames]);
+
+    if (this.hasCapability('next_pickup_type')) {
+      await this.removeCapability('next_pickup_type');
+    }
+    await this.addCapability('next_pickup_type');
+    await this.setCapabilityValue('next_pickup_type', formattedFractionNames);
   }
 
 };
