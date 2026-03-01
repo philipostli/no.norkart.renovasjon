@@ -6,7 +6,7 @@
   },
   "getable": true,
   "setable": true,
-  "uiComponent": "sensor",
+  "uiComponent": null,
   "uiQuickAction": false,
   "icon": "/drivers/renovasjon/assets/calendar.svg"
 }
