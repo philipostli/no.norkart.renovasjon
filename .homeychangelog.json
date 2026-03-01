@@ -28,5 +28,8 @@
   },
   "1.0.1": {
     "en": "Fikset flowkort for kombinasjonsavfall i kommuner med avfallstypen Mat-/restavfall"
+  },
+  "1.0.2": {
+    "en": "Rettet feil med indikator som resatte seg. Lagt til tag for neste henting type og dato."
   }
 }
