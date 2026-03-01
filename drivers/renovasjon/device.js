@@ -734,12 +734,10 @@ module.exports = class MyDevice extends Homey.Device {
     
     const daysText = daysDiff === 1 ? this.homey.__('device.pickup.day_to') : this.homey.__('device.pickup.days_to');
     const nextPickupText = `${daysDiff} ${daysText} ${formattedFractionNames}`;
-    
-    // Always remove and re-add to ensure it appears last
-    if (this.hasCapability('next_pickup_days')) {
-      await this.removeCapability('next_pickup_days');
+
+    if (!this.hasCapability('next_pickup_days')) {
+      await this.addCapability('next_pickup_days');
     }
-    await this.addCapability('next_pickup_days');
     await this.setCapabilityValue('next_pickup_days', nextPickupText);
     
     // this.log(`Updated next pickup: ${nextPickupText}`);
@@ -787,10 +785,9 @@ module.exports = class MyDevice extends Homey.Device {
     const fractionNames = result.fractions.map(f => f.name);
     const formattedFractionNames = this.formatFractionNamesList([...fractionNames]);
 
-    if (this.hasCapability('next_pickup_type')) {
-      await this.removeCapability('next_pickup_type');
+    if (!this.hasCapability('next_pickup_type')) {
+      await this.addCapability('next_pickup_type');
     }
-    await this.addCapability('next_pickup_type');
     await this.setCapabilityValue('next_pickup_type', formattedFractionNames);
   }
 
